@@ -90,3 +90,4 @@ This model supports custom orders and store orders in the same workflow.
 - OrderItem snapshots store title and sku so historical orders stay accurate if Product changes.
 - Multiple Design versions can exist for a single Order. Only one should be marked approved.
 - DesignReview represents a single customer response to a design version.
+- Prisma schema draft lives at `api/prisma/schema.prisma`.

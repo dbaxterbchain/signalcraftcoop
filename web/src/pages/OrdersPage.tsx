@@ -1,0 +1,116 @@
+import {
+  Alert,
+  Box,
+  Button,
+  Chip,
+  Container,
+  Stack,
+  Typography,
+} from '@mui/material';
+import Grid from '@mui/material/Grid';
+import { useEffect, useState } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
+import { getOrders } from '../api/client';
+import type { Order } from '../api/types';
+
+export default function OrdersPage() {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    getOrders()
+      .then((data) => {
+        if (active) {
+          setOrders(data);
+        }
+      })
+      .catch((err) => {
+        if (active) {
+          const statusCode = (err as Error & { status?: number }).status;
+          setError(
+            statusCode === 401
+              ? 'Sign in required to view orders.'
+              : 'Unable to load orders right now.',
+          );
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  return (
+    <Box sx={{ py: { xs: 6, md: 10 } }}>
+      <Container maxWidth="lg">
+        <Stack spacing={2} sx={{ mb: 6 }}>
+          <Chip label="Orders" sx={{ width: 'fit-content', bgcolor: '#EAF4FF' }} />
+          <Typography variant="h2">Your orders</Typography>
+          <Typography variant="body1" color="text.secondary">
+            Track custom and store orders, review designs, and request reorders.
+          </Typography>
+          {error && <Alert severity="info">{error}</Alert>}
+        </Stack>
+
+        {orders.length === 0 && !error ? (
+          <Box
+            sx={{
+              p: 4,
+              borderRadius: 3,
+              border: '1px dashed #C5D6E5',
+              textAlign: 'center',
+              backgroundColor: '#F4F8FB',
+            }}
+          >
+            <Typography variant="h4" sx={{ mb: 1 }}>
+              No orders yet
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+              Start a custom order or browse standard products to get started.
+            </Typography>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center">
+              <Button variant="contained">Start a custom order</Button>
+              <Button variant="outlined">Browse products</Button>
+            </Stack>
+          </Box>
+        ) : (
+          <Grid container spacing={3}>
+            {orders.map((order) => (
+              <Grid size={{ xs: 12, md: 6 }} key={order.id}>
+                <Box
+                  sx={{
+                    p: 3,
+                    borderRadius: 3,
+                    border: '1px solid #C5D6E5',
+                    backgroundColor: '#FFFFFF',
+                    boxShadow: '0 6px 24px rgba(10, 42, 67, 0.12)',
+                  }}
+                >
+                  <Stack spacing={1}>
+                    <Typography variant="h4">
+                      {order.orderNumber ?? order.id}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Type: {order.type} - Status: {order.status}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Total: {order.total ? `$${order.total.toFixed(2)}` : 'TBD'}
+                    </Typography>
+                    <Button
+                      component={RouterLink}
+                      to={`/orders/${order.id}`}
+                      variant="outlined"
+                      sx={{ alignSelf: 'flex-start' }}
+                    >
+                      View order
+                    </Button>
+                  </Stack>
+                </Box>
+              </Grid>
+            ))}
+          </Grid>
+        )}
+      </Container>
+    </Box>
+  );
+}

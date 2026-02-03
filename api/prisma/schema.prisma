@@ -1,0 +1,150 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum OrderType {
+  custom
+  store
+}
+
+enum OrderStatus {
+  intake
+  designing
+  review
+  approved
+  production
+  shipping
+  complete
+  on_hold
+  canceled
+}
+
+enum PaymentStatus {
+  unpaid
+  authorized
+  paid
+  refunded
+  disputed
+}
+
+enum DesignStatus {
+  draft
+  in_review
+  changes_requested
+  approved
+}
+
+enum DesignReviewStatus {
+  approved
+  changes_requested
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  phone     String?
+  role      String   @default("customer")
+  orders    Order[]
+  addresses Address[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Address {
+  id         String   @id @default(uuid())
+  userId     String
+  label      String   @default("shipping")
+  line1      String
+  line2      String?
+  city       String
+  state      String
+  postalCode String
+  country    String
+  user       User     @relation(fields: [userId], references: [id])
+  createdAt  DateTime @default(now())
+}
+
+model Order {
+  id              String        @id @default(uuid())
+  userId          String?
+  orderNumber     String        @unique
+  type            OrderType
+  status          OrderStatus
+  paymentStatus   PaymentStatus @default(unpaid)
+  subtotal        Float
+  tax             Float
+  shipping        Float
+  total           Float
+  shippingAddress String?
+  billingAddress  String?
+  items           OrderItem[]
+  designs         Design[]
+  user            User?         @relation(fields: [userId], references: [id])
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model OrderItem {
+  id          String    @id @default(uuid())
+  orderId     String
+  productId   String?
+  title       String
+  sku         String?
+  quantity    Int
+  unitPrice   Float
+  nfcConfigId String?   @unique
+  designId    String?
+  order       Order     @relation(fields: [orderId], references: [id])
+  product     Product?  @relation(fields: [productId], references: [id])
+  nfcConfig   NFCConfig? @relation(fields: [nfcConfigId], references: [id])
+}
+
+model Product {
+  id         String    @id @default(uuid())
+  title      String
+  sku        String    @unique
+  description String?
+  basePrice  Float
+  category   String?
+  allowsNfc  Boolean   @default(false)
+  active     Boolean   @default(true)
+  items      OrderItem[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model Design {
+  id        String       @id @default(uuid())
+  orderId   String
+  version   Int
+  status    DesignStatus
+  previewUrl String
+  sourceUrl  String?
+  order     Order        @relation(fields: [orderId], references: [id])
+  reviews   DesignReview[]
+  createdAt DateTime     @default(now())
+}
+
+model DesignReview {
+  id           String             @id @default(uuid())
+  designId     String
+  status       DesignReviewStatus
+  comment      String?
+  attachmentUrl String?
+  design       Design             @relation(fields: [designId], references: [id])
+  createdAt    DateTime           @default(now())
+}
+
+model NFCConfig {
+  id        String   @id @default(uuid())
+  url       String
+  kind      String?
+  notes     String?
+  item      OrderItem?
+  createdAt DateTime @default(now())
+}

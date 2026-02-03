@@ -3,6 +3,7 @@
 - Frontend hosted on S3 + CloudFront
 - API on ECS Fargate (Docker)
 - Postgres on RDS
+- Prisma ORM + migrations for persistence
 - S3 for file storage
 - Cognito for auth
 - Stripe for payments

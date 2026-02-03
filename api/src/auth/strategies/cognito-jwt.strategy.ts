@@ -20,12 +20,16 @@ export class CognitoJwtStrategy extends PassportStrategy(
 ) {
   constructor() {
     const issuer = getCognitoIssuer();
-    const audience = process.env.COGNITO_CLIENT_ID;
+    const cookieExtractor = (req: { cookies?: Record<string, string> }) =>
+      req?.cookies?.access_token ?? req?.cookies?.id_token ?? null;
+
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        ExtractJwt.fromAuthHeaderAsBearerToken(),
+        cookieExtractor,
+      ]),
       ignoreExpiration: false,
       issuer,
-      audience,
       algorithms: ['RS256'],
       secretOrKeyProvider: passportJwtSecret({
         cache: true,
@@ -37,6 +41,27 @@ export class CognitoJwtStrategy extends PassportStrategy(
   }
 
   validate(payload: Record<string, unknown>): AuthUser {
+    const tokenUse =
+      typeof payload.token_use === 'string' ? payload.token_use : undefined;
+    const configuredClientId = process.env.COGNITO_CLIENT_ID;
+    const tokenClientId =
+      typeof payload.client_id === 'string'
+        ? payload.client_id
+        : typeof payload.aud === 'string'
+          ? payload.aud
+          : undefined;
+
+    if (tokenUse !== 'access' && tokenUse !== 'id') {
+      throw new UnauthorizedException('Invalid token use');
+    }
+    if (
+      configuredClientId &&
+      tokenClientId &&
+      tokenClientId !== configuredClientId
+    ) {
+      throw new UnauthorizedException('Invalid token audience');
+    }
+
     return {
       sub: typeof payload.sub === 'string' ? payload.sub : 'unknown',
       email: typeof payload.email === 'string' ? payload.email : undefined,

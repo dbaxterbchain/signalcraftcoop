@@ -1,93 +1,117 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  DesignReviewStatus as DbDesignReviewStatus,
+  DesignStatus as DbDesignStatus,
+} from '@prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateDesignDto } from './dto/create-design.dto';
 import { CreateDesignReviewDto } from './dto/create-design-review.dto';
 import { DesignReviewStatus, DesignStatus } from './dto/design.enums';
 
-type DesignRecord = {
-  id: string;
-  orderId: string;
-  version: number;
-  status: DesignStatus;
-  previewUrl: string;
-  sourceUrl?: string;
-  createdAt: string;
+const designStatusToDb: Record<DesignStatus, DbDesignStatus> = {
+  [DesignStatus.Draft]: DbDesignStatus.draft,
+  [DesignStatus.InReview]: DbDesignStatus.in_review,
+  [DesignStatus.ChangesRequested]: DbDesignStatus.changes_requested,
+  [DesignStatus.Approved]: DbDesignStatus.approved,
 };
 
-type DesignReviewRecord = {
-  id: string;
-  designId: string;
-  status: DesignReviewStatus;
-  comment?: string;
-  attachmentUrl?: string;
-  createdAt: string;
+const designStatusFromDb: Record<DbDesignStatus, DesignStatus> = {
+  [DbDesignStatus.draft]: DesignStatus.Draft,
+  [DbDesignStatus.in_review]: DesignStatus.InReview,
+  [DbDesignStatus.changes_requested]: DesignStatus.ChangesRequested,
+  [DbDesignStatus.approved]: DesignStatus.Approved,
 };
 
-const seedDesigns: DesignRecord[] = [
-  {
-    id: 'design_1',
-    orderId: 'order_1',
-    version: 1,
-    status: DesignStatus.InReview,
-    previewUrl: 'https://example.com/designs/preview-1.png',
-    createdAt: new Date().toISOString(),
-  },
-];
+const reviewStatusToDb: Record<DesignReviewStatus, DbDesignReviewStatus> = {
+  [DesignReviewStatus.Approved]: DbDesignReviewStatus.approved,
+  [DesignReviewStatus.ChangesRequested]: DbDesignReviewStatus.changes_requested,
+};
 
-const seedReviews: DesignReviewRecord[] = [
-  {
-    id: 'review_1',
-    designId: 'design_1',
-    status: DesignReviewStatus.ChangesRequested,
-    comment: 'Please reduce logo size by 10%.',
-    createdAt: new Date().toISOString(),
-  },
-];
+const reviewStatusFromDb: Record<DbDesignReviewStatus, DesignReviewStatus> = {
+  [DbDesignReviewStatus.approved]: DesignReviewStatus.Approved,
+  [DbDesignReviewStatus.changes_requested]: DesignReviewStatus.ChangesRequested,
+};
 
 @Injectable()
 export class DesignReviewService {
-  private designs = [...seedDesigns];
-  private reviews = [...seedReviews];
+  constructor(private readonly prisma: PrismaService) {}
 
-  listDesigns(orderId: string) {
-    const designs = this.designs.filter((design) => design.orderId === orderId);
-    return designs;
+  async listDesigns(orderId: string) {
+    const designs = await this.prisma.design.findMany({
+      where: { orderId },
+      orderBy: { createdAt: 'desc' },
+    });
+    return designs.map((design) => ({
+      id: design.id,
+      orderId: design.orderId,
+      version: design.version,
+      status: designStatusFromDb[design.status],
+      previewUrl: design.previewUrl,
+      sourceUrl: design.sourceUrl ?? undefined,
+      createdAt: design.createdAt.toISOString(),
+    }));
   }
 
-  createDesign(orderId: string, payload: CreateDesignDto) {
-    const id = `design_${this.designs.length + 1}`;
-    const design: DesignRecord = {
-      id,
-      orderId,
-      version: payload.version,
-      status: payload.status,
-      previewUrl: payload.previewUrl,
-      sourceUrl: payload.sourceUrl,
-      createdAt: new Date().toISOString(),
+  async createDesign(orderId: string, payload: CreateDesignDto) {
+    const design = await this.prisma.design.create({
+      data: {
+        orderId,
+        version: payload.version,
+        status: designStatusToDb[payload.status],
+        previewUrl: payload.previewUrl,
+        sourceUrl: payload.sourceUrl,
+      },
+    });
+
+    return {
+      id: design.id,
+      orderId: design.orderId,
+      version: design.version,
+      status: designStatusFromDb[design.status],
+      previewUrl: design.previewUrl,
+      sourceUrl: design.sourceUrl ?? undefined,
+      createdAt: design.createdAt.toISOString(),
     };
-    this.designs.unshift(design);
-    return design;
   }
 
-  createReview(designId: string, payload: CreateDesignReviewDto) {
-    const design = this.designs.find((item) => item.id === designId);
+  async createReview(designId: string, payload: CreateDesignReviewDto) {
+    const design = await this.prisma.design.findUnique({
+      where: { id: designId },
+    });
     if (!design) {
       throw new NotFoundException('Design not found');
     }
-    const review: DesignReviewRecord = {
-      id: `review_${this.reviews.length + 1}`,
-      designId,
-      status: payload.status,
-      comment: payload.comment,
-      attachmentUrl: payload.attachmentUrl,
-      createdAt: new Date().toISOString(),
+
+    const nextStatus =
+      payload.status === DesignReviewStatus.Approved
+        ? designStatusToDb[DesignStatus.Approved]
+        : designStatusToDb[DesignStatus.ChangesRequested];
+
+    const review = await this.prisma.$transaction(async (tx) => {
+      const created = await tx.designReview.create({
+        data: {
+          designId,
+          status: reviewStatusToDb[payload.status],
+          comment: payload.comment,
+          attachmentUrl: payload.attachmentUrl,
+        },
+      });
+
+      await tx.design.update({
+        where: { id: designId },
+        data: { status: nextStatus },
+      });
+
+      return created;
+    });
+
+    return {
+      id: review.id,
+      designId: review.designId,
+      status: reviewStatusFromDb[review.status],
+      comment: review.comment ?? undefined,
+      attachmentUrl: review.attachmentUrl ?? undefined,
+      createdAt: review.createdAt.toISOString(),
     };
-    if (payload.status === DesignReviewStatus.Approved) {
-      design.status = DesignStatus.Approved;
-    }
-    if (payload.status === DesignReviewStatus.ChangesRequested) {
-      design.status = DesignStatus.ChangesRequested;
-    }
-    this.reviews.unshift(review);
-    return review;
   }
 }

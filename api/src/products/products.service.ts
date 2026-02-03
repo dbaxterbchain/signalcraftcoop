@@ -1,93 +1,124 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 
-type ProductRecord = {
-  id: string;
-  title: string;
-  sku: string;
-  description?: string | null;
-  basePrice: number;
-  category?: string | null;
-  allowsNfc: boolean;
-  active: boolean;
-  createdAt: string;
-};
-
 @Injectable()
 export class ProductsService {
-  private products: ProductRecord[] = [
-    {
-      id: 'prod_1',
-      title: 'Logo Keychain (NFC)',
-      sku: 'KEY-NFC-01',
-      description: 'Acrylic keychain with embedded NFC.',
-      basePrice: 6,
-      category: 'keychains',
-      allowsNfc: true,
-      active: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: 'prod_2',
-      title: 'Laser-Engraved Coaster Set',
-      sku: 'COASTER-ENG-01',
-      description: 'Set of 4 engraved coasters.',
-      basePrice: 22,
-      category: 'engraving',
-      allowsNfc: false,
-      active: true,
-      createdAt: new Date().toISOString(),
-    },
-  ];
+  constructor(private readonly prisma: PrismaService) {}
 
-  listProducts() {
-    return this.products.filter((product) => product.active);
-  }
-
-  listAllProducts() {
-    return [...this.products];
-  }
-
-  createProduct(payload: CreateProductDto) {
-    const id = `prod_${this.products.length + 1}`;
-    const product = {
-      id,
-      title: payload.title,
-      sku: payload.sku,
-      description: payload.description ?? null,
-      basePrice: payload.basePrice,
-      category: payload.category ?? null,
-      allowsNfc: payload.allowsNfc,
-      active: true,
-      createdAt: new Date().toISOString(),
-    };
-    this.products.unshift(product);
-    return product;
-  }
-
-  updateProduct(productId: string, payload: UpdateProductDto) {
-    const product = this.products.find((item) => item.id === productId);
-    if (!product) {
-      throw new NotFoundException('Product not found');
-    }
-    Object.assign(product, {
-      title: payload.title ?? product.title,
-      sku: payload.sku ?? product.sku,
-      description: payload.description ?? product.description,
-      basePrice: payload.basePrice ?? product.basePrice,
-      category: payload.category ?? product.category,
-      allowsNfc: payload.allowsNfc ?? product.allowsNfc,
+  async listProducts() {
+    const products = await this.prisma.product.findMany({
+      where: { active: true },
+      orderBy: { createdAt: 'desc' },
     });
-    return product;
+    return products.map((product) => ({
+      id: product.id,
+      title: product.title,
+      sku: product.sku,
+      description: product.description ?? undefined,
+      basePrice: product.basePrice,
+      category: product.category ?? undefined,
+      allowsNfc: product.allowsNfc,
+      active: product.active,
+      createdAt: product.createdAt.toISOString(),
+    }));
   }
 
-  deactivateProduct(productId: string) {
-    const product = this.products.find((item) => item.id === productId);
-    if (!product) {
+  async listAllProducts() {
+    const products = await this.prisma.product.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+    return products.map((product) => ({
+      id: product.id,
+      title: product.title,
+      sku: product.sku,
+      description: product.description ?? undefined,
+      basePrice: product.basePrice,
+      category: product.category ?? undefined,
+      allowsNfc: product.allowsNfc,
+      active: product.active,
+      createdAt: product.createdAt.toISOString(),
+    }));
+  }
+
+  async createProduct(payload: CreateProductDto) {
+    const product = await this.prisma.product.create({
+      data: {
+        title: payload.title,
+        sku: payload.sku,
+        description: payload.description,
+        basePrice: payload.basePrice,
+        category: payload.category,
+        allowsNfc: payload.allowsNfc,
+        active: true,
+      },
+    });
+    return {
+      id: product.id,
+      title: product.title,
+      sku: product.sku,
+      description: product.description ?? undefined,
+      basePrice: product.basePrice,
+      category: product.category ?? undefined,
+      allowsNfc: product.allowsNfc,
+      active: product.active,
+      createdAt: product.createdAt.toISOString(),
+    };
+  }
+
+  async updateProduct(productId: string, payload: UpdateProductDto) {
+    const existing = await this.prisma.product.findUnique({
+      where: { id: productId },
+    });
+    if (!existing) {
       throw new NotFoundException('Product not found');
     }
-    product.active = false;
-    return product;
+    const product = await this.prisma.product.update({
+      where: { id: productId },
+      data: {
+        title: payload.title,
+        sku: payload.sku,
+        description: payload.description,
+        basePrice: payload.basePrice,
+        category: payload.category,
+        allowsNfc: payload.allowsNfc,
+      },
+    });
+    return {
+      id: product.id,
+      title: product.title,
+      sku: product.sku,
+      description: product.description ?? undefined,
+      basePrice: product.basePrice,
+      category: product.category ?? undefined,
+      allowsNfc: product.allowsNfc,
+      active: product.active,
+      createdAt: product.createdAt.toISOString(),
+    };
+  }
+
+  async deactivateProduct(productId: string) {
+    const existing = await this.prisma.product.findUnique({
+      where: { id: productId },
+    });
+    if (!existing) {
+      throw new NotFoundException('Product not found');
+    }
+    const product = await this.prisma.product.update({
+      where: { id: productId },
+      data: { active: false },
+    });
+    return {
+      id: product.id,
+      title: product.title,
+      sku: product.sku,
+      description: product.description ?? undefined,
+      basePrice: product.basePrice,
+      category: product.category ?? undefined,
+      allowsNfc: product.allowsNfc,
+      active: product.active,
+      createdAt: product.createdAt.toISOString(),
+    };
   }
 }

@@ -9,6 +9,12 @@ Quick links
 - Order workflow: docs/product/order-workflow.md
 - Design review workflow: docs/product/design-review.md
 - Decisions (ADRs): docs/decisions/README.md
+- Brand system: docs/ux/brand.md
+- UI system: docs/ux/ui-system.md
+- MUI theme draft: docs/ux/mui-theme.md
+- Landing wireframe: docs/ux/landing-wireframe.md
+- Typography + color swatches: docs/ux/type-color-swatch.md
+- Dev setup: docs/ops/dev-setup.md
 
 Folder guide
 - docs/architecture: system design, data model, infrastructure, security
