@@ -10,7 +10,6 @@ env:
   ECR_REPO: 089080661826.dkr.ecr.us-west-2.amazonaws.com/signalcraft-api-staging
   ECS_CLUSTER: staging-staging-api-ClusterEB0386A7-NkWLQpu3ozv2
   ECS_SERVICE: staging-staging-api-ApiService199661B5-t4SvSuJt1hSE
-  ECS_TASK_DEF: signalcraftstagingstagingapiApiServiceTaskDef9E66C782:1
   ECS_SUBNETS: subnet-021a3e46812d3bd8b,subnet-0de5fb29fac5226bc
   ECS_SECURITY_GROUPS: sg-0b7f441cc27c9fc21
   S3_BUCKET: staging-staging-web-webbucket12880f5b-qqnt6ea0jfcd
