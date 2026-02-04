@@ -1,0 +1,83 @@
+name: Deploy Staging
+
+on:
+  push:
+    branches: [staging]
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-west-2
+  ECR_REPO: 089080661826.dkr.ecr.us-west-2.amazonaws.com/signalcraft-api-staging
+  ECS_CLUSTER: staging-staging-api-ClusterEB0386A7-NkWLQpu3ozv2
+  ECS_SERVICE: staging-staging-api-ApiService199661B5-t4SvSuJt1hSE
+  ECS_TASK_DEF: signalcraftstagingstagingapiApiServiceTaskDef9E66C782:1
+  ECS_SUBNETS: subnet-021a3e46812d3bd8b,subnet-0de5fb29fac5226bc
+  ECS_SECURITY_GROUPS: sg-0b7f441cc27c9fc21
+  S3_BUCKET: staging-staging-web-webbucket12880f5b-qqnt6ea0jfcd
+  CLOUDFRONT_DIST: E1WNT7EZ9TRQSG
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::089080661826:role/signalcraft-staging-github-actions
+          role-session-name: signalcraft-staging-deploy
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Build + deploy web (staging)
+        working-directory: web
+        run: |
+          npm ci
+          npm run deploy:staging
+
+      - name: Fetch RDS CA bundle
+        run: |
+          mkdir -p api/certs
+          curl -fsSL https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem -o api/certs/rds-ca.pem
+          test -s api/certs/rds-ca.pem
+
+      - name: Build + push API image
+        run: |
+          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
+          docker build -t signalcraft-api:latest ./api
+          docker tag signalcraft-api:latest $ECR_REPO:latest
+          docker push $ECR_REPO:latest
+
+      - name: Run Prisma migrations (staging)
+        run: |
+          TASK_ARN=$(aws ecs run-task --region $AWS_REGION \
+            --cluster $ECS_CLUSTER \
+            --launch-type FARGATE \
+            --task-definition $ECS_TASK_DEF \
+            --network-configuration "awsvpcConfiguration={subnets=[$ECS_SUBNETS],securityGroups=[$ECS_SECURITY_GROUPS],assignPublicIp=DISABLED}" \
+            --overrides '{"containerOverrides":[{"name":"web","command":["npx","prisma","migrate","deploy"]}]}' \
+            --query 'tasks[0].taskArn' --output text)
+          aws ecs wait tasks-stopped --region $AWS_REGION --cluster $ECS_CLUSTER --tasks $TASK_ARN
+          EXIT_CODE=$(aws ecs describe-tasks --region $AWS_REGION --cluster $ECS_CLUSTER --tasks $TASK_ARN --query 'tasks[0].containers[0].exitCode' --output text)
+          if [ "$EXIT_CODE" != "0" ]; then
+            echo "Prisma migrate failed with exit code $EXIT_CODE"
+            aws ecs describe-tasks --region $AWS_REGION --cluster $ECS_CLUSTER --tasks $TASK_ARN
+            exit 1
+          fi
+
+      - name: Force ECS deploy
+        run: |
+          aws ecs update-service --region $AWS_REGION \
+            --cluster $ECS_CLUSTER \
+            --service $ECS_SERVICE \
+            --force-new-deployment

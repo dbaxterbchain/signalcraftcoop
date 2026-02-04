@@ -1,0 +1,21 @@
+{
+  "version": "48.0.0",
+  "files": {
+    "cb322812c4b224b1c9ccf8277e8eeb7d8efb0aadf4269bfdd76b9cbec2e0f422": {
+      "displayName": "staging-staging-network Template",
+      "source": {
+        "path": "signalcraftstagingstagingnetworkC0D598D9.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "089080661826-us-west-2-d0546a22": {
+          "bucketName": "cdk-hnb659fds-assets-089080661826-us-west-2",
+          "objectKey": "cb322812c4b224b1c9ccf8277e8eeb7d8efb0aadf4269bfdd76b9cbec2e0f422.json",
+          "region": "us-west-2",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-file-publishing-role-089080661826-us-west-2"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

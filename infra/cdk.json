@@ -1,0 +1,7 @@
+{
+  "app": "npx ts-node --prefer-ts-exts bin/signalcraft-infra.ts",
+  "context": {
+    "stage": "staging",
+    "region": "us-west-2"
+  }
+}

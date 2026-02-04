@@ -1,0 +1,84 @@
+name: Deploy Prod
+
+on:
+  workflow_dispatch:
+    inputs:
+      s3_bucket:
+        description: "Prod web S3 bucket name"
+        required: false
+        type: string
+      cloudfront_distribution:
+        description: "Prod CloudFront distribution ID"
+        required: false
+        type: string
+      ecr_repo:
+        description: "Prod ECR repo (full URI, no tag)"
+        required: false
+        type: string
+      ecs_cluster:
+        description: "Prod ECS cluster name"
+        required: false
+        type: string
+      ecs_service:
+        description: "Prod ECS service name"
+        required: false
+        type: string
+
+env:
+  AWS_REGION: us-west-2
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::089080661826:role/signalcraft-prod-github-actions
+          role-session-name: signalcraft-prod-deploy
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Build + deploy web (prod)
+        if: ${{ inputs.s3_bucket != '' && inputs.cloudfront_distribution != '' }}
+        working-directory: web
+        run: |
+          npm ci
+          npm run build:prod
+          aws s3 sync dist s3://${{ inputs.s3_bucket }} --delete --exclude "*.js" --exclude "*.css" --exclude "*.map" --exclude "*.svg" --exclude "*.html"
+          aws s3 cp dist s3://${{ inputs.s3_bucket }} --recursive --exclude "*" --include "*.js" --content-type application/javascript --cache-control "public,max-age=31536000,immutable"
+          aws s3 cp dist s3://${{ inputs.s3_bucket }} --recursive --exclude "*" --include "*.css" --content-type text/css --cache-control "public,max-age=31536000,immutable"
+          aws s3 cp dist s3://${{ inputs.s3_bucket }} --recursive --exclude "*" --include "*.map" --content-type application/json --cache-control "public,max-age=31536000,immutable"
+          aws s3 cp dist s3://${{ inputs.s3_bucket }} --recursive --exclude "*" --include "*.svg" --content-type image/svg+xml --cache-control "public,max-age=31536000,immutable"
+          aws s3 cp dist s3://${{ inputs.s3_bucket }} --recursive --exclude "*" --include "*.html" --content-type text/html --cache-control "no-cache"
+          aws cloudfront create-invalidation --distribution-id ${{ inputs.cloudfront_distribution }} --paths "/*"
+
+      - name: Build + push API image
+        if: ${{ inputs.ecr_repo != '' }}
+        run: |
+          mkdir -p api/certs
+          curl -fsSL https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem -o api/certs/rds-ca.pem
+          test -s api/certs/rds-ca.pem
+          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin ${{ inputs.ecr_repo }}
+          docker build -t signalcraft-api:latest ./api
+          docker tag signalcraft-api:latest ${{ inputs.ecr_repo }}:latest
+          docker push ${{ inputs.ecr_repo }}:latest
+
+      - name: Force ECS deploy
+        if: ${{ inputs.ecs_cluster != '' && inputs.ecs_service != '' }}
+        run: |
+          aws ecs update-service --region $AWS_REGION \
+            --cluster ${{ inputs.ecs_cluster }} \
+            --service ${{ inputs.ecs_service }} \
+            --force-new-deployment
