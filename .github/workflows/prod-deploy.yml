@@ -7,22 +7,27 @@ on:
         description: "Prod web S3 bucket name"
         required: false
         type: string
+        default: prod-prod-web-webbucket12880f5b-bclsbbomyhnp
       cloudfront_distribution:
         description: "Prod CloudFront distribution ID"
         required: false
         type: string
+        default: E3P0DZ7ELUJ88C
       ecr_repo:
         description: "Prod ECR repo (full URI, no tag)"
         required: false
         type: string
+        default: 089080661826.dkr.ecr.us-west-2.amazonaws.com/signalcraft-api-prod
       ecs_cluster:
         description: "Prod ECS cluster name"
         required: false
         type: string
+        default: prod-prod-api-ClusterEB0386A7-5BNpfdopDVj7
       ecs_service:
         description: "Prod ECS service name"
         required: false
         type: string
+        default: prod-prod-api-ApiService199661B5-OYyURQv3WIal
 
 env:
   AWS_REGION: us-west-2
