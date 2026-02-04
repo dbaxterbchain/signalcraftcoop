@@ -6,12 +6,16 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:staging": "tsc && vite build --mode staging",
+    "build:prod": "tsc && vite build --mode production",
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json --noEmit --incremental false",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "vitest run --passWithNoTests",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "deploy:staging": "npm run build:staging && aws s3 sync dist s3://staging-staging-web-webbucket12880f5b-qqnt6ea0jfcd --delete --exclude \"*.js\" --exclude \"*.css\" --exclude \"*.map\" --exclude \"*.svg\" --exclude \"*.html\" && aws s3 cp dist s3://staging-staging-web-webbucket12880f5b-qqnt6ea0jfcd --recursive --exclude \"*\" --include \"*.js\" --content-type application/javascript --cache-control \"public,max-age=31536000,immutable\" && aws s3 cp dist s3://staging-staging-web-webbucket12880f5b-qqnt6ea0jfcd --recursive --exclude \"*\" --include \"*.css\" --content-type text/css --cache-control \"public,max-age=31536000,immutable\" && aws s3 cp dist s3://staging-staging-web-webbucket12880f5b-qqnt6ea0jfcd --recursive --exclude \"*\" --include \"*.map\" --content-type application/json --cache-control \"public,max-age=31536000,immutable\" && aws s3 cp dist s3://staging-staging-web-webbucket12880f5b-qqnt6ea0jfcd --recursive --exclude \"*\" --include \"*.svg\" --content-type image/svg+xml --cache-control \"public,max-age=31536000,immutable\" && aws s3 cp dist s3://staging-staging-web-webbucket12880f5b-qqnt6ea0jfcd --recursive --exclude \"*\" --include \"*.html\" --content-type text/html --cache-control \"no-cache\" && aws cloudfront create-invalidation --distribution-id E1WNT7EZ9TRQSG --paths \"/*\"",
+    "deploy:prod": "node -e \"console.error('Set prod S3 bucket + CloudFront distribution IDs before deploying.'); process.exit(1)\""
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",

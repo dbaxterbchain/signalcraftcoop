@@ -86,6 +86,10 @@ In the Cognito App Client settings, add:
 - OAuth flow: Authorization code grant
 - Scopes: `openid`, `email`, `profile`
 
+If you enable Google as an IdP:
+- Add Google redirect URI: `https://<your-cognito-domain>/oauth2/idpresponse`
+- In the Cognito Google IdP settings, enter scopes space-delimited: `openid email profile`
+
 ## Troubleshooting
 
 - Port 5432 busy: set `POSTGRES_PORT` in your shell and update `DATABASE_URL` accordingly.

@@ -1,0 +1,36 @@
+{
+  "version": "48.0.0",
+  "files": {
+    "b073cebcf4d61fb152a30f5a5e57a94df7f980a549fdf1a79a0b18c5750522d8": {
+      "displayName": "WebCertificate/CertificateRequestorFunction/Code",
+      "source": {
+        "path": "..\\asset.b073cebcf4d61fb152a30f5a5e57a94df7f980a549fdf1a79a0b18c5750522d8",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "089080661826-us-west-2-2c0ca189": {
+          "bucketName": "cdk-hnb659fds-assets-089080661826-us-west-2",
+          "objectKey": "b073cebcf4d61fb152a30f5a5e57a94df7f980a549fdf1a79a0b18c5750522d8.zip",
+          "region": "us-west-2",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-file-publishing-role-089080661826-us-west-2"
+        }
+      }
+    },
+    "d67c1eff13484284834fdedf2044c5d36b46245f2880798ab5a24f270ae2b26b": {
+      "displayName": "prod-prod-web Template",
+      "source": {
+        "path": "signalcraftprodprodwebF4D7D9DE.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "089080661826-us-west-2-70baafe0": {
+          "bucketName": "cdk-hnb659fds-assets-089080661826-us-west-2",
+          "objectKey": "d67c1eff13484284834fdedf2044c5d36b46245f2880798ab5a24f270ae2b26b.json",
+          "region": "us-west-2",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-file-publishing-role-089080661826-us-west-2"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

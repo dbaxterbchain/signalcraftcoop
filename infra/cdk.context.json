@@ -1,0 +1,15 @@
+{
+  "availability-zones:account=089080661826:region=us-west-2": [
+    "us-west-2a",
+    "us-west-2b",
+    "us-west-2c",
+    "us-west-2d"
+  ],
+  "acknowledged-issue-numbers": [
+    34892
+  ],
+  "hosted-zone:account=089080661826:domainName=signalcraftcoop.com:region=us-west-2": {
+    "Id": "/hostedzone/Z09892993TR3DJNYURCX2",
+    "Name": "signalcraftcoop.com."
+  }
+}

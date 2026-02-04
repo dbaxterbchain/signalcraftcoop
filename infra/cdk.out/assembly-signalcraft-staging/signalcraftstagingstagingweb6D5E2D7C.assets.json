@@ -1,0 +1,51 @@
+{
+  "version": "48.0.0",
+  "files": {
+    "faa95a81ae7d7373f3e1f242268f904eb748d8d0fdd306e8a6fe515a1905a7d6": {
+      "displayName": "signalcraft-staging/staging-web/Custom::S3AutoDeleteObjectsCustomResourceProvider Code",
+      "source": {
+        "path": "..\\asset.faa95a81ae7d7373f3e1f242268f904eb748d8d0fdd306e8a6fe515a1905a7d6",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "089080661826-us-west-2-05b7f3d5": {
+          "bucketName": "cdk-hnb659fds-assets-089080661826-us-west-2",
+          "objectKey": "faa95a81ae7d7373f3e1f242268f904eb748d8d0fdd306e8a6fe515a1905a7d6.zip",
+          "region": "us-west-2",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-file-publishing-role-089080661826-us-west-2"
+        }
+      }
+    },
+    "b073cebcf4d61fb152a30f5a5e57a94df7f980a549fdf1a79a0b18c5750522d8": {
+      "displayName": "WebCertificate/CertificateRequestorFunction/Code",
+      "source": {
+        "path": "..\\asset.b073cebcf4d61fb152a30f5a5e57a94df7f980a549fdf1a79a0b18c5750522d8",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "089080661826-us-west-2-2c0ca189": {
+          "bucketName": "cdk-hnb659fds-assets-089080661826-us-west-2",
+          "objectKey": "b073cebcf4d61fb152a30f5a5e57a94df7f980a549fdf1a79a0b18c5750522d8.zip",
+          "region": "us-west-2",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-file-publishing-role-089080661826-us-west-2"
+        }
+      }
+    },
+    "3aff8e50a85008a386e910d80a7ac84fdb2a46867fed06c86c2b655b0f3b0dcc": {
+      "displayName": "staging-staging-web Template",
+      "source": {
+        "path": "signalcraftstagingstagingweb6D5E2D7C.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "089080661826-us-west-2-125510b4": {
+          "bucketName": "cdk-hnb659fds-assets-089080661826-us-west-2",
+          "objectKey": "3aff8e50a85008a386e910d80a7ac84fdb2a46867fed06c86c2b655b0f3b0dcc.json",
+          "region": "us-west-2",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-file-publishing-role-089080661826-us-west-2"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

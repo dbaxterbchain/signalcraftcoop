@@ -15,6 +15,9 @@ Quick links
 - Landing wireframe: docs/ux/landing-wireframe.md
 - Typography + color swatches: docs/ux/type-color-swatch.md
 - Dev setup: docs/ops/dev-setup.md
+- Project progress: docs/ops/progress.md
+- Hosting plan: docs/ops/hosting-plan.md
+- CI/CD: docs/ops/ci-cd.md
 
 Folder guide
 - docs/architecture: system design, data model, infrastructure, security

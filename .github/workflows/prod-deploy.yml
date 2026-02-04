@@ -1,0 +1,118 @@
+name: Deploy Prod
+
+on:
+  workflow_dispatch:
+    inputs:
+      s3_bucket:
+        description: "Prod web S3 bucket name"
+        required: false
+        type: string
+      cloudfront_distribution:
+        description: "Prod CloudFront distribution ID"
+        required: false
+        type: string
+      ecr_repo:
+        description: "Prod ECR repo (full URI, no tag)"
+        required: false
+        type: string
+      ecs_cluster:
+        description: "Prod ECS cluster name"
+        required: false
+        type: string
+      ecs_service:
+        description: "Prod ECS service name"
+        required: false
+        type: string
+
+env:
+  AWS_REGION: us-west-2
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            api/package-lock.json
+            web/package-lock.json
+            infra/package-lock.json
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::089080661826:role/signalcraft-prod-github-actions
+          role-session-name: signalcraft-prod-deploy
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Build + deploy web (prod)
+        if: ${{ inputs.s3_bucket != '' && inputs.cloudfront_distribution != '' }}
+        working-directory: web
+        run: |
+          npm ci
+          npm run build:prod
+          aws s3 sync dist s3://${{ inputs.s3_bucket }} --delete --exclude "*.js" --exclude "*.css" --exclude "*.map" --exclude "*.svg" --exclude "*.html"
+          aws s3 cp dist s3://${{ inputs.s3_bucket }} --recursive --exclude "*" --include "*.js" --content-type application/javascript --cache-control "public,max-age=31536000,immutable"
+          aws s3 cp dist s3://${{ inputs.s3_bucket }} --recursive --exclude "*" --include "*.css" --content-type text/css --cache-control "public,max-age=31536000,immutable"
+          aws s3 cp dist s3://${{ inputs.s3_bucket }} --recursive --exclude "*" --include "*.map" --content-type application/json --cache-control "public,max-age=31536000,immutable"
+          aws s3 cp dist s3://${{ inputs.s3_bucket }} --recursive --exclude "*" --include "*.svg" --content-type image/svg+xml --cache-control "public,max-age=31536000,immutable"
+          aws s3 cp dist s3://${{ inputs.s3_bucket }} --recursive --exclude "*" --include "*.html" --content-type text/html --cache-control "no-cache"
+          aws cloudfront create-invalidation --distribution-id ${{ inputs.cloudfront_distribution }} --paths "/*"
+
+      - name: Build + push API image
+        if: ${{ inputs.ecr_repo != '' }}
+        run: |
+          mkdir -p api/certs
+          curl -fsSL https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem -o api/certs/rds-ca.pem
+          test -s api/certs/rds-ca.pem
+          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin ${{ inputs.ecr_repo }}
+          docker build -t signalcraft-api:latest ./api
+          docker tag signalcraft-api:latest ${{ inputs.ecr_repo }}:latest
+          docker push ${{ inputs.ecr_repo }}:latest
+
+      - name: Run Prisma migrations (prod)
+        if: ${{ inputs.ecs_cluster != '' && inputs.ecs_service != '' }}
+        run: |
+          TASK_DEF_ARN=$(aws ecs describe-services --region $AWS_REGION \
+            --cluster ${{ inputs.ecs_cluster }} \
+            --services ${{ inputs.ecs_service }} \
+            --query 'services[0].taskDefinition' --output text)
+          SUBNETS=$(aws ecs describe-services --region $AWS_REGION \
+            --cluster ${{ inputs.ecs_cluster }} \
+            --services ${{ inputs.ecs_service }} \
+            --query 'services[0].networkConfiguration.awsvpcConfiguration.subnets' --output text | tr '\t' ',')
+          SECURITY_GROUPS=$(aws ecs describe-services --region $AWS_REGION \
+            --cluster ${{ inputs.ecs_cluster }} \
+            --services ${{ inputs.ecs_service }} \
+            --query 'services[0].networkConfiguration.awsvpcConfiguration.securityGroups' --output text | tr '\t' ',')
+          TASK_ARN=$(aws ecs run-task --region $AWS_REGION \
+            --cluster ${{ inputs.ecs_cluster }} \
+            --launch-type FARGATE \
+            --task-definition $TASK_DEF_ARN \
+            --network-configuration "awsvpcConfiguration={subnets=[$SUBNETS],securityGroups=[$SECURITY_GROUPS],assignPublicIp=DISABLED}" \
+            --overrides '{"containerOverrides":[{"name":"web","command":["npx","prisma","migrate","deploy"]}]}' \
+            --query 'tasks[0].taskArn' --output text)
+          aws ecs wait tasks-stopped --region $AWS_REGION --cluster ${{ inputs.ecs_cluster }} --tasks $TASK_ARN
+          EXIT_CODE=$(aws ecs describe-tasks --region $AWS_REGION --cluster ${{ inputs.ecs_cluster }} --tasks $TASK_ARN --query 'tasks[0].containers[0].exitCode' --output text)
+          if [ "$EXIT_CODE" != "0" ]; then
+            echo "Prisma migrate failed with exit code $EXIT_CODE"
+            aws ecs describe-tasks --region $AWS_REGION --cluster ${{ inputs.ecs_cluster }} --tasks $TASK_ARN
+            exit 1
+          fi
+
+      - name: Force ECS deploy
+        if: ${{ inputs.ecs_cluster != '' && inputs.ecs_service != '' }}
+        run: |
+          aws ecs update-service --region $AWS_REGION \
+            --cluster ${{ inputs.ecs_cluster }} \
+            --service ${{ inputs.ecs_service }} \
+            --force-new-deployment
