@@ -41,6 +41,7 @@ function buildDatabaseUrlFromEnv() {
   const user = process.env.DB_USER;
   const password = process.env.DB_PASSWORD;
   const sslMode = process.env.DB_SSLMODE;
+  const caPath = process.env.DB_SSL_CA_PATH ?? process.env.PGSSLROOTCERT;
 
   if (!host || !name || !user || !password) {
     return undefined;
@@ -51,6 +52,9 @@ function buildDatabaseUrlFromEnv() {
   const params = new URLSearchParams({ schema: 'public' });
   if (sslMode) {
     params.set('sslmode', sslMode);
+  }
+  if (caPath) {
+    params.set('sslrootcert', caPath);
   }
 
   return `postgresql://${encodedUser}:${encodedPassword}@${host}:${port}/${name}?${params.toString()}`;

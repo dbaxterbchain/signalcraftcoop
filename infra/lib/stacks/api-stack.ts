@@ -78,6 +78,8 @@ export class ApiStack extends cdk.Stack {
             DB_SSLMODE: 'verify-full',
             DB_SSL_REJECT_UNAUTHORIZED: 'true',
             DB_SSL_CA_PATH: '/app/certs/rds-ca.pem',
+            PGSSLROOTCERT: '/app/certs/rds-ca.pem',
+            NODE_EXTRA_CA_CERTS: '/app/certs/rds-ca.pem',
           },
           secrets: {
             DB_HOST: ecs.Secret.fromSecretsManager(props.dbSecret, 'host'),

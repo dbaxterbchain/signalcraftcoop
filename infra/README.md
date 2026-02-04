@@ -125,6 +125,9 @@ RDS TLS (recommended):
   - `DB_SSLMODE=verify-full`
   - `DB_SSL_REJECT_UNAUTHORIZED=true`
   - `DB_SSL_CA_PATH=/app/certs/rds-ca.pem`
+- It also sets:
+  - `PGSSLROOTCERT=/app/certs/rds-ca.pem` (Prisma CLI/libpq)
+  - `NODE_EXTRA_CA_CERTS=/app/certs/rds-ca.pem` (Node TLS trust)
 - Rebuild and push the API image after adding the CA bundle, then redeploy the API stack.
 
 ## Build and push API image
