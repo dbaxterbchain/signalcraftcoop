@@ -64,10 +64,14 @@ jobs:
 
       - name: Run Prisma migrations (staging)
         run: |
+          TASK_DEF_ARN=$(aws ecs describe-services --region $AWS_REGION \
+            --cluster $ECS_CLUSTER \
+            --services $ECS_SERVICE \
+            --query 'services[0].taskDefinition' --output text)
           TASK_ARN=$(aws ecs run-task --region $AWS_REGION \
             --cluster $ECS_CLUSTER \
             --launch-type FARGATE \
-            --task-definition $ECS_TASK_DEF \
+            --task-definition $TASK_DEF_ARN \
             --network-configuration "awsvpcConfiguration={subnets=[$ECS_SUBNETS],securityGroups=[$ECS_SECURITY_GROUPS],assignPublicIp=DISABLED}" \
             --overrides '{"containerOverrides":[{"name":"web","command":["npx","prisma","migrate","deploy"]}]}' \
             --query 'tasks[0].taskArn' --output text)
