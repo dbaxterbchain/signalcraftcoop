@@ -59,6 +59,7 @@ Last updated: 2026-02-04
 - Add S3 upload flow for design proofs (API + frontend upload UI).
 - Add an Account page and polish the authenticated navigation.
 - Add API integration tests for auth, orders, and design review.
+- Infra cleanup: replace deprecated CDK constructs (`DnsValidatedCertificate` → `Certificate`, `S3Origin` → `S3BucketOrigin`).
 
 ## Notes / lessons learned
 - ECS tasks fail with `CannotPullContainerError` until the image is pushed to ECR.

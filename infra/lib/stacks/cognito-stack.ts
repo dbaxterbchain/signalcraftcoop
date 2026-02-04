@@ -34,14 +34,17 @@ export class CognitoStack extends cdk.Stack {
           : cdk.RemovalPolicy.DESTROY,
     });
 
-    const callbackUrls = [
-      `https://${props.config.webDomain}/auth/callback`,
-      'http://localhost:5173/auth/callback',
-    ];
-    const logoutUrls = [
-      `https://${props.config.webDomain}/`,
-      'http://localhost:5173/',
-    ];
+    const callbackUrls =
+      props.config.name === 'prod'
+        ? [`https://${props.config.webDomain}/auth/callback`]
+        : [
+            `https://${props.config.webDomain}/auth/callback`,
+            'http://localhost:5173/auth/callback',
+          ];
+    const logoutUrls =
+      props.config.name === 'prod'
+        ? [`https://${props.config.webDomain}/`]
+        : [`https://${props.config.webDomain}/`, 'http://localhost:5173/'];
 
     const userPoolClient = new cognito.UserPoolClient(this, 'UserPoolClient', {
       userPool,

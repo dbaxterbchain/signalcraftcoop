@@ -1,11 +1,11 @@
 {
   "version": "48.0.0",
   "artifacts": {
-    "assembly-signalcraft-staging": {
+    "assembly-signalcraft-prod": {
       "type": "cdk:cloud-assembly",
       "properties": {
-        "directoryName": "assembly-signalcraft-staging",
-        "displayName": "signalcraft-staging"
+        "directoryName": "assembly-signalcraft-prod",
+        "displayName": "signalcraft-prod"
       }
     },
     "Tree": {

@@ -1,588 +1,600 @@
 {
   "version": "48.0.0",
   "artifacts": {
-    "signalcraftstagingstagingnetworkC0D598D9.assets": {
+    "signalcraftprodprodnetwork7D891FDA.assets": {
       "type": "cdk:asset-manifest",
       "properties": {
-        "file": "signalcraftstagingstagingnetworkC0D598D9.assets.json",
+        "file": "signalcraftprodprodnetwork7D891FDA.assets.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
       }
     },
-    "signalcraftstagingstagingnetworkC0D598D9": {
+    "signalcraftprodprodnetwork7D891FDA": {
       "type": "aws:cloudformation:stack",
       "environment": "aws://089080661826/us-west-2",
       "properties": {
-        "templateFile": "signalcraftstagingstagingnetworkC0D598D9.template.json",
+        "templateFile": "signalcraftprodprodnetwork7D891FDA.template.json",
         "terminationProtection": false,
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-deploy-role-089080661826-us-west-2",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-cfn-exec-role-089080661826-us-west-2",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-089080661826-us-west-2/cb322812c4b224b1c9ccf8277e8eeb7d8efb0aadf4269bfdd76b9cbec2e0f422.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-089080661826-us-west-2/9e9706f6c8e37862d7ec716d1fc2fa68573d8e66a4775e886e8d1cd7861dd205.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
-          "signalcraftstagingstagingnetworkC0D598D9.assets"
+          "signalcraftprodprodnetwork7D891FDA.assets"
         ],
         "lookupRole": {
           "arn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-lookup-role-089080661826-us-west-2",
           "requiresBootstrapStackVersion": 8,
           "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
         },
-        "stackName": "staging-staging-network"
+        "stackName": "prod-prod-network"
       },
       "dependencies": [
-        "signalcraftstagingstagingnetworkC0D598D9.assets"
+        "signalcraftprodprodnetwork7D891FDA.assets"
       ],
       "metadata": {
-        "/signalcraft-staging/staging-network/Vpc/Resource": [
+        "/signalcraft-prod/prod-network/Vpc/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "Vpc8378EB38"
           }
         ],
-        "/signalcraft-staging/staging-network/Vpc/publicSubnet1/Subnet": [
+        "/signalcraft-prod/prod-network/Vpc/publicSubnet1/Subnet": [
           {
             "type": "aws:cdk:logicalId",
             "data": "VpcpublicSubnet1Subnet2BB74ED7"
           }
         ],
-        "/signalcraft-staging/staging-network/Vpc/publicSubnet1/RouteTable": [
+        "/signalcraft-prod/prod-network/Vpc/publicSubnet1/RouteTable": [
           {
             "type": "aws:cdk:logicalId",
             "data": "VpcpublicSubnet1RouteTable15C15F8E"
           }
         ],
-        "/signalcraft-staging/staging-network/Vpc/publicSubnet1/RouteTableAssociation": [
+        "/signalcraft-prod/prod-network/Vpc/publicSubnet1/RouteTableAssociation": [
           {
             "type": "aws:cdk:logicalId",
             "data": "VpcpublicSubnet1RouteTableAssociation4E83B6E4"
           }
         ],
-        "/signalcraft-staging/staging-network/Vpc/publicSubnet1/DefaultRoute": [
+        "/signalcraft-prod/prod-network/Vpc/publicSubnet1/DefaultRoute": [
           {
             "type": "aws:cdk:logicalId",
             "data": "VpcpublicSubnet1DefaultRouteB88F9E93"
           }
         ],
-        "/signalcraft-staging/staging-network/Vpc/publicSubnet1/EIP": [
+        "/signalcraft-prod/prod-network/Vpc/publicSubnet1/EIP": [
           {
             "type": "aws:cdk:logicalId",
             "data": "VpcpublicSubnet1EIP411541E6"
           }
         ],
-        "/signalcraft-staging/staging-network/Vpc/publicSubnet1/NATGateway": [
+        "/signalcraft-prod/prod-network/Vpc/publicSubnet1/NATGateway": [
           {
             "type": "aws:cdk:logicalId",
             "data": "VpcpublicSubnet1NATGatewayA036E8A6"
           }
         ],
-        "/signalcraft-staging/staging-network/Vpc/publicSubnet2/Subnet": [
+        "/signalcraft-prod/prod-network/Vpc/publicSubnet2/Subnet": [
           {
             "type": "aws:cdk:logicalId",
             "data": "VpcpublicSubnet2SubnetE34B022A"
           }
         ],
-        "/signalcraft-staging/staging-network/Vpc/publicSubnet2/RouteTable": [
+        "/signalcraft-prod/prod-network/Vpc/publicSubnet2/RouteTable": [
           {
             "type": "aws:cdk:logicalId",
             "data": "VpcpublicSubnet2RouteTableC5A6DF77"
           }
         ],
-        "/signalcraft-staging/staging-network/Vpc/publicSubnet2/RouteTableAssociation": [
+        "/signalcraft-prod/prod-network/Vpc/publicSubnet2/RouteTableAssociation": [
           {
             "type": "aws:cdk:logicalId",
             "data": "VpcpublicSubnet2RouteTableAssociationCCE257FF"
           }
         ],
-        "/signalcraft-staging/staging-network/Vpc/publicSubnet2/DefaultRoute": [
+        "/signalcraft-prod/prod-network/Vpc/publicSubnet2/DefaultRoute": [
           {
             "type": "aws:cdk:logicalId",
             "data": "VpcpublicSubnet2DefaultRoute732F0BEB"
           }
         ],
-        "/signalcraft-staging/staging-network/Vpc/privateSubnet1/Subnet": [
+        "/signalcraft-prod/prod-network/Vpc/publicSubnet2/EIP": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "VpcpublicSubnet2EIP811E07A7"
+          }
+        ],
+        "/signalcraft-prod/prod-network/Vpc/publicSubnet2/NATGateway": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "VpcpublicSubnet2NATGateway4A29FD4F"
+          }
+        ],
+        "/signalcraft-prod/prod-network/Vpc/privateSubnet1/Subnet": [
           {
             "type": "aws:cdk:logicalId",
             "data": "VpcprivateSubnet1SubnetCEAD3716"
           }
         ],
-        "/signalcraft-staging/staging-network/Vpc/privateSubnet1/RouteTable": [
+        "/signalcraft-prod/prod-network/Vpc/privateSubnet1/RouteTable": [
           {
             "type": "aws:cdk:logicalId",
             "data": "VpcprivateSubnet1RouteTable1979EACB"
           }
         ],
-        "/signalcraft-staging/staging-network/Vpc/privateSubnet1/RouteTableAssociation": [
+        "/signalcraft-prod/prod-network/Vpc/privateSubnet1/RouteTableAssociation": [
           {
             "type": "aws:cdk:logicalId",
             "data": "VpcprivateSubnet1RouteTableAssociationEEBD93CE"
           }
         ],
-        "/signalcraft-staging/staging-network/Vpc/privateSubnet1/DefaultRoute": [
+        "/signalcraft-prod/prod-network/Vpc/privateSubnet1/DefaultRoute": [
           {
             "type": "aws:cdk:logicalId",
             "data": "VpcprivateSubnet1DefaultRouteB506891A"
           }
         ],
-        "/signalcraft-staging/staging-network/Vpc/privateSubnet2/Subnet": [
+        "/signalcraft-prod/prod-network/Vpc/privateSubnet2/Subnet": [
           {
             "type": "aws:cdk:logicalId",
             "data": "VpcprivateSubnet2Subnet2DE7549C"
           }
         ],
-        "/signalcraft-staging/staging-network/Vpc/privateSubnet2/RouteTable": [
+        "/signalcraft-prod/prod-network/Vpc/privateSubnet2/RouteTable": [
           {
             "type": "aws:cdk:logicalId",
             "data": "VpcprivateSubnet2RouteTable4D0FFC8C"
           }
         ],
-        "/signalcraft-staging/staging-network/Vpc/privateSubnet2/RouteTableAssociation": [
+        "/signalcraft-prod/prod-network/Vpc/privateSubnet2/RouteTableAssociation": [
           {
             "type": "aws:cdk:logicalId",
             "data": "VpcprivateSubnet2RouteTableAssociationB691E645"
           }
         ],
-        "/signalcraft-staging/staging-network/Vpc/privateSubnet2/DefaultRoute": [
+        "/signalcraft-prod/prod-network/Vpc/privateSubnet2/DefaultRoute": [
           {
             "type": "aws:cdk:logicalId",
             "data": "VpcprivateSubnet2DefaultRouteBAC3C1C3"
           }
         ],
-        "/signalcraft-staging/staging-network/Vpc/IGW": [
+        "/signalcraft-prod/prod-network/Vpc/IGW": [
           {
             "type": "aws:cdk:logicalId",
             "data": "VpcIGWD7BA715C"
           }
         ],
-        "/signalcraft-staging/staging-network/Vpc/VPCGW": [
+        "/signalcraft-prod/prod-network/Vpc/VPCGW": [
           {
             "type": "aws:cdk:logicalId",
             "data": "VpcVPCGWBF912B6E"
           }
         ],
-        "/signalcraft-staging/staging-network/VpcId": [
+        "/signalcraft-prod/prod-network/VpcId": [
           {
             "type": "aws:cdk:logicalId",
             "data": "VpcId"
           }
         ],
-        "/signalcraft-staging/staging-network/CDKMetadata/Default": [
+        "/signalcraft-prod/prod-network/CDKMetadata/Default": [
           {
             "type": "aws:cdk:logicalId",
             "data": "CDKMetadata"
           }
         ],
-        "/signalcraft-staging/staging-network/Exports/Output{\"Fn::GetAtt\":[\"Vpc8378EB38\",\"CidrBlock\"]}": [
+        "/signalcraft-prod/prod-network/Exports/Output{\"Fn::GetAtt\":[\"Vpc8378EB38\",\"CidrBlock\"]}": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ExportsOutputFnGetAttVpc8378EB38CidrBlock14DD2396"
           }
         ],
-        "/signalcraft-staging/staging-network/Exports/Output{\"Ref\":\"Vpc8378EB38\"}": [
+        "/signalcraft-prod/prod-network/Exports/Output{\"Ref\":\"Vpc8378EB38\"}": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ExportsOutputRefVpc8378EB38272D6E3A"
           }
         ],
-        "/signalcraft-staging/staging-network/Exports/Output{\"Ref\":\"VpcprivateSubnet1SubnetCEAD3716\"}": [
+        "/signalcraft-prod/prod-network/Exports/Output{\"Ref\":\"VpcprivateSubnet1SubnetCEAD3716\"}": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ExportsOutputRefVpcprivateSubnet1SubnetCEAD37168693D373"
           }
         ],
-        "/signalcraft-staging/staging-network/Exports/Output{\"Ref\":\"VpcprivateSubnet2Subnet2DE7549C\"}": [
+        "/signalcraft-prod/prod-network/Exports/Output{\"Ref\":\"VpcprivateSubnet2Subnet2DE7549C\"}": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ExportsOutputRefVpcprivateSubnet2Subnet2DE7549CDF5ACE3D"
           }
         ],
-        "/signalcraft-staging/staging-network/Exports/Output{\"Ref\":\"VpcpublicSubnet1Subnet2BB74ED7\"}": [
+        "/signalcraft-prod/prod-network/Exports/Output{\"Ref\":\"VpcpublicSubnet1Subnet2BB74ED7\"}": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ExportsOutputRefVpcpublicSubnet1Subnet2BB74ED74EB42ADC"
           }
         ],
-        "/signalcraft-staging/staging-network/Exports/Output{\"Ref\":\"VpcpublicSubnet2SubnetE34B022A\"}": [
+        "/signalcraft-prod/prod-network/Exports/Output{\"Ref\":\"VpcpublicSubnet2SubnetE34B022A\"}": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ExportsOutputRefVpcpublicSubnet2SubnetE34B022AC8BB6627"
           }
         ],
-        "/signalcraft-staging/staging-network/BootstrapVersion": [
+        "/signalcraft-prod/prod-network/BootstrapVersion": [
           {
             "type": "aws:cdk:logicalId",
             "data": "BootstrapVersion"
           }
         ],
-        "/signalcraft-staging/staging-network/CheckBootstrapVersion": [
+        "/signalcraft-prod/prod-network/CheckBootstrapVersion": [
           {
             "type": "aws:cdk:logicalId",
             "data": "CheckBootstrapVersion"
           }
         ]
       },
-      "displayName": "signalcraft-staging/staging-network"
+      "displayName": "signalcraft-prod/prod-network"
     },
-    "signalcraftstagingstagingdata0CC1E373.assets": {
+    "signalcraftprodproddataA112B32C.assets": {
       "type": "cdk:asset-manifest",
       "properties": {
-        "file": "signalcraftstagingstagingdata0CC1E373.assets.json",
+        "file": "signalcraftprodproddataA112B32C.assets.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
       }
     },
-    "signalcraftstagingstagingdata0CC1E373": {
+    "signalcraftprodproddataA112B32C": {
       "type": "aws:cloudformation:stack",
       "environment": "aws://089080661826/us-west-2",
       "properties": {
-        "templateFile": "signalcraftstagingstagingdata0CC1E373.template.json",
+        "templateFile": "signalcraftprodproddataA112B32C.template.json",
         "terminationProtection": false,
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-deploy-role-089080661826-us-west-2",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-cfn-exec-role-089080661826-us-west-2",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-089080661826-us-west-2/4afcef2aa7733b398292c53014ff39d27201b27f7c5d0fea977cc8ddfa2db33c.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-089080661826-us-west-2/2bb7a20196919d4a611890b7a6d4087b3c8bde3f9162b1e0db0f77a8ea98d5b4.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
-          "signalcraftstagingstagingdata0CC1E373.assets"
+          "signalcraftprodproddataA112B32C.assets"
         ],
         "lookupRole": {
           "arn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-lookup-role-089080661826-us-west-2",
           "requiresBootstrapStackVersion": 8,
           "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
         },
-        "stackName": "staging-staging-data"
+        "stackName": "prod-prod-data"
       },
       "dependencies": [
-        "signalcraftstagingstagingnetworkC0D598D9",
-        "signalcraftstagingstagingdata0CC1E373.assets"
+        "signalcraftprodprodnetwork7D891FDA",
+        "signalcraftprodproddataA112B32C.assets"
       ],
       "metadata": {
-        "/signalcraft-staging/staging-data/DbSecurityGroup/Resource": [
+        "/signalcraft-prod/prod-data/DbSecurityGroup/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "DbSecurityGroupE9D701AD"
           }
         ],
-        "/signalcraft-staging/staging-data/Postgres/SubnetGroup/Default": [
+        "/signalcraft-prod/prod-data/Postgres/SubnetGroup/Default": [
           {
             "type": "aws:cdk:logicalId",
             "data": "PostgresSubnetGroup9F8A4D6E"
           }
         ],
-        "/signalcraft-staging/staging-data/Postgres/Secret/Resource": [
+        "/signalcraft-prod/prod-data/Postgres/Secret/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "signalcraftstagingstagingdataPostgresSecret42CAE7DA3fdaad7efa858a3daf9490cf0a702aeb"
+            "data": "signalcraftprodproddataPostgresSecret504A47043fdaad7efa858a3daf9490cf0a702aeb"
           }
         ],
-        "/signalcraft-staging/staging-data/Postgres/Secret/Attachment/Resource": [
+        "/signalcraft-prod/prod-data/Postgres/Secret/Attachment/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "PostgresSecretAttachment75CD6F6F"
           }
         ],
-        "/signalcraft-staging/staging-data/Postgres/Resource": [
+        "/signalcraft-prod/prod-data/Postgres/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "Postgres9DC8BB04"
           }
         ],
-        "/signalcraft-staging/staging-data/DbEndpoint": [
+        "/signalcraft-prod/prod-data/DbEndpoint": [
           {
             "type": "aws:cdk:logicalId",
             "data": "DbEndpoint"
           }
         ],
-        "/signalcraft-staging/staging-data/DbSecretArn": [
+        "/signalcraft-prod/prod-data/DbSecretArn": [
           {
             "type": "aws:cdk:logicalId",
             "data": "DbSecretArn"
           }
         ],
-        "/signalcraft-staging/staging-data/CDKMetadata/Default": [
+        "/signalcraft-prod/prod-data/CDKMetadata/Default": [
           {
             "type": "aws:cdk:logicalId",
             "data": "CDKMetadata"
           }
         ],
-        "/signalcraft-staging/staging-data/Exports/Output{\"Ref\":\"PostgresSecretAttachment75CD6F6F\"}": [
+        "/signalcraft-prod/prod-data/Exports/Output{\"Ref\":\"PostgresSecretAttachment75CD6F6F\"}": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ExportsOutputRefPostgresSecretAttachment75CD6F6F9ED7447B"
           }
         ],
-        "/signalcraft-staging/staging-data/BootstrapVersion": [
+        "/signalcraft-prod/prod-data/BootstrapVersion": [
           {
             "type": "aws:cdk:logicalId",
             "data": "BootstrapVersion"
           }
         ],
-        "/signalcraft-staging/staging-data/CheckBootstrapVersion": [
+        "/signalcraft-prod/prod-data/CheckBootstrapVersion": [
           {
             "type": "aws:cdk:logicalId",
             "data": "CheckBootstrapVersion"
           }
         ]
       },
-      "displayName": "signalcraft-staging/staging-data"
+      "displayName": "signalcraft-prod/prod-data"
     },
-    "signalcraftstagingstagingcognito4F87D517.assets": {
+    "signalcraftprodprodcognito31931C71.assets": {
       "type": "cdk:asset-manifest",
       "properties": {
-        "file": "signalcraftstagingstagingcognito4F87D517.assets.json",
+        "file": "signalcraftprodprodcognito31931C71.assets.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
       }
     },
-    "signalcraftstagingstagingcognito4F87D517": {
+    "signalcraftprodprodcognito31931C71": {
       "type": "aws:cloudformation:stack",
       "environment": "aws://089080661826/us-west-2",
       "properties": {
-        "templateFile": "signalcraftstagingstagingcognito4F87D517.template.json",
+        "templateFile": "signalcraftprodprodcognito31931C71.template.json",
         "terminationProtection": false,
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-deploy-role-089080661826-us-west-2",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-cfn-exec-role-089080661826-us-west-2",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-089080661826-us-west-2/12b479027a89a9b29af9db9493a49dd776f0fe0e7c15523a9d9e1c3c00acb26a.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-089080661826-us-west-2/237cd2cc11a3404b020872f2ef4b1c8bf4c72ed23c440efee201e157a8794951.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
-          "signalcraftstagingstagingcognito4F87D517.assets"
+          "signalcraftprodprodcognito31931C71.assets"
         ],
         "lookupRole": {
           "arn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-lookup-role-089080661826-us-west-2",
           "requiresBootstrapStackVersion": 8,
           "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
         },
-        "stackName": "staging-staging-cognito"
+        "stackName": "prod-prod-cognito"
       },
       "dependencies": [
-        "signalcraftstagingstagingcognito4F87D517.assets"
+        "signalcraftprodprodcognito31931C71.assets"
       ],
       "metadata": {
-        "/signalcraft-staging/staging-cognito/UserPool/Resource": [
+        "/signalcraft-prod/prod-cognito/UserPool/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "UserPool6BA7E5F2"
           }
         ],
-        "/signalcraft-staging/staging-cognito/UserPool/UserPoolDomain/Resource": [
+        "/signalcraft-prod/prod-cognito/UserPool/UserPoolDomain/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "UserPoolUserPoolDomain9F01E991"
           }
         ],
-        "/signalcraft-staging/staging-cognito/UserPoolClient/Resource": [
+        "/signalcraft-prod/prod-cognito/UserPoolClient/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "UserPoolClient2F5918F7"
           }
         ],
-        "/signalcraft-staging/staging-cognito/UserPoolId": [
+        "/signalcraft-prod/prod-cognito/UserPoolId": [
           {
             "type": "aws:cdk:logicalId",
             "data": "UserPoolId"
           }
         ],
-        "/signalcraft-staging/staging-cognito/UserPoolClientId": [
+        "/signalcraft-prod/prod-cognito/UserPoolClientId": [
           {
             "type": "aws:cdk:logicalId",
             "data": "UserPoolClientId"
           }
         ],
-        "/signalcraft-staging/staging-cognito/UserPoolDomain": [
+        "/signalcraft-prod/prod-cognito/UserPoolDomain": [
           {
             "type": "aws:cdk:logicalId",
             "data": "UserPoolDomain"
           }
         ],
-        "/signalcraft-staging/staging-cognito/CDKMetadata/Default": [
+        "/signalcraft-prod/prod-cognito/CDKMetadata/Default": [
           {
             "type": "aws:cdk:logicalId",
             "data": "CDKMetadata"
           }
         ],
-        "/signalcraft-staging/staging-cognito/Exports/Output{\"Ref\":\"UserPool6BA7E5F2\"}": [
+        "/signalcraft-prod/prod-cognito/Exports/Output{\"Ref\":\"UserPool6BA7E5F2\"}": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ExportsOutputRefUserPool6BA7E5F296FD7236"
           }
         ],
-        "/signalcraft-staging/staging-cognito/Exports/Output{\"Ref\":\"UserPoolClient2F5918F7\"}": [
+        "/signalcraft-prod/prod-cognito/Exports/Output{\"Ref\":\"UserPoolClient2F5918F7\"}": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ExportsOutputRefUserPoolClient2F5918F753847A55"
           }
         ],
-        "/signalcraft-staging/staging-cognito/Exports/Output{\"Ref\":\"UserPoolUserPoolDomain9F01E991\"}": [
+        "/signalcraft-prod/prod-cognito/Exports/Output{\"Ref\":\"UserPoolUserPoolDomain9F01E991\"}": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ExportsOutputRefUserPoolUserPoolDomain9F01E991C1F75B8B"
           }
         ],
-        "/signalcraft-staging/staging-cognito/BootstrapVersion": [
+        "/signalcraft-prod/prod-cognito/BootstrapVersion": [
           {
             "type": "aws:cdk:logicalId",
             "data": "BootstrapVersion"
           }
         ],
-        "/signalcraft-staging/staging-cognito/CheckBootstrapVersion": [
+        "/signalcraft-prod/prod-cognito/CheckBootstrapVersion": [
           {
             "type": "aws:cdk:logicalId",
             "data": "CheckBootstrapVersion"
           }
         ]
       },
-      "displayName": "signalcraft-staging/staging-cognito"
+      "displayName": "signalcraft-prod/prod-cognito"
     },
-    "signalcraftstagingstagingapiB15CC049.assets": {
+    "signalcraftprodprodapi057505FE.assets": {
       "type": "cdk:asset-manifest",
       "properties": {
-        "file": "signalcraftstagingstagingapiB15CC049.assets.json",
+        "file": "signalcraftprodprodapi057505FE.assets.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
       }
     },
-    "signalcraftstagingstagingapiB15CC049": {
+    "signalcraftprodprodapi057505FE": {
       "type": "aws:cloudformation:stack",
       "environment": "aws://089080661826/us-west-2",
       "properties": {
-        "templateFile": "signalcraftstagingstagingapiB15CC049.template.json",
+        "templateFile": "signalcraftprodprodapi057505FE.template.json",
         "terminationProtection": false,
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-deploy-role-089080661826-us-west-2",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-cfn-exec-role-089080661826-us-west-2",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-089080661826-us-west-2/b21beb4608c39ba92a13d67e5e91214a94120de5bd95cabfbbacb35ceeceaab9.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-089080661826-us-west-2/8ca5127e84a2945e4f5b608dba80834c6482f15f7dc39064e15e33ab4873c5dc.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
-          "signalcraftstagingstagingapiB15CC049.assets"
+          "signalcraftprodprodapi057505FE.assets"
         ],
         "lookupRole": {
           "arn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-lookup-role-089080661826-us-west-2",
           "requiresBootstrapStackVersion": 8,
           "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
         },
-        "stackName": "staging-staging-api"
+        "stackName": "prod-prod-api"
       },
       "dependencies": [
-        "signalcraftstagingstagingnetworkC0D598D9",
-        "signalcraftstagingstagingcognito4F87D517",
-        "signalcraftstagingstagingdata0CC1E373",
-        "signalcraftstagingstagingapiB15CC049.assets"
+        "signalcraftprodprodnetwork7D891FDA",
+        "signalcraftprodprodcognito31931C71",
+        "signalcraftprodproddataA112B32C",
+        "signalcraftprodprodapi057505FE.assets"
       ],
       "metadata": {
-        "/signalcraft-staging/staging-api/WebOrigin": [
+        "/signalcraft-prod/prod-api/WebOrigin": [
           {
             "type": "aws:cdk:logicalId",
             "data": "WebOrigin"
           }
         ],
-        "/signalcraft-staging/staging-api/Cluster/Resource": [
+        "/signalcraft-prod/prod-api/Cluster/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ClusterEB0386A7"
           }
         ],
-        "/signalcraft-staging/staging-api/ApiRepository/Resource": [
+        "/signalcraft-prod/prod-api/ApiRepository/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ApiRepositoryB8378B43"
           }
         ],
-        "/signalcraft-staging/staging-api/ApiLogs/Resource": [
+        "/signalcraft-prod/prod-api/ApiLogs/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ApiLogs3D05D88B"
           }
         ],
-        "/signalcraft-staging/staging-api/ApiService/LB/Resource": [
+        "/signalcraft-prod/prod-api/ApiService/LB/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ApiServiceLB08B891CD"
           }
         ],
-        "/signalcraft-staging/staging-api/ApiService/LB/SecurityGroup/Resource": [
+        "/signalcraft-prod/prod-api/ApiService/LB/SecurityGroup/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ApiServiceLBSecurityGroup5C16BEF8"
           }
         ],
-        "/signalcraft-staging/staging-api/ApiService/LB/SecurityGroup/to signalcraftstagingstagingapiApiServiceSecurityGroup76FBF5C3:3000": [
+        "/signalcraft-prod/prod-api/ApiService/LB/SecurityGroup/to signalcraftprodprodapiApiServiceSecurityGroup370C1D5D:3000": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "ApiServiceLBSecurityGrouptosignalcraftstagingstagingapiApiServiceSecurityGroup76FBF5C33000F45EEEFD"
+            "data": "ApiServiceLBSecurityGrouptosignalcraftprodprodapiApiServiceSecurityGroup370C1D5D3000150FF178"
           }
         ],
-        "/signalcraft-staging/staging-api/ApiService/LB/PublicListener/Resource": [
+        "/signalcraft-prod/prod-api/ApiService/LB/PublicListener/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ApiServiceLBPublicListener1394DF3E"
           }
         ],
-        "/signalcraft-staging/staging-api/ApiService/LB/PublicListener/ECSGroup/Resource": [
+        "/signalcraft-prod/prod-api/ApiService/LB/PublicListener/ECSGroup/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ApiServiceLBPublicListenerECSGroup14A87FE9"
           }
         ],
-        "/signalcraft-staging/staging-api/ApiService/LB/PublicListener/HttpRedirectRule/Resource": [
+        "/signalcraft-prod/prod-api/ApiService/LB/PublicListener/HttpRedirectRule/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ApiServiceLBPublicListenerHttpRedirectRule9ECA6167"
           }
         ],
-        "/signalcraft-staging/staging-api/ApiService/LB/HttpsListener/Resource": [
+        "/signalcraft-prod/prod-api/ApiService/LB/HttpsListener/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ApiServiceLBHttpsListenerC6969499"
           }
         ],
-        "/signalcraft-staging/staging-api/ApiService/LB/HttpsListener/HttpsTargetsGroup/Resource": [
+        "/signalcraft-prod/prod-api/ApiService/LB/HttpsListener/HttpsTargetsGroup/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ApiServiceLBHttpsListenerHttpsTargetsGroup550E69B1"
           }
         ],
-        "/signalcraft-staging/staging-api/ApiService/LoadBalancerDNS": [
+        "/signalcraft-prod/prod-api/ApiService/LoadBalancerDNS": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ApiServiceLoadBalancerDNSBF9EB7FC"
           }
         ],
-        "/signalcraft-staging/staging-api/ApiService/ServiceURL": [
+        "/signalcraft-prod/prod-api/ApiService/ServiceURL": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ApiServiceServiceURL2EB28DB2"
           }
         ],
-        "/signalcraft-staging/staging-api/ApiService/TaskDef/TaskRole/Resource": [
+        "/signalcraft-prod/prod-api/ApiService/TaskDef/TaskRole/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ApiServiceTaskDefTaskRole1014CB34"
           }
         ],
-        "/signalcraft-staging/staging-api/ApiService/TaskDef/Resource": [
+        "/signalcraft-prod/prod-api/ApiService/TaskDef/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ApiServiceTaskDefDF3191FB"
           }
         ],
-        "/signalcraft-staging/staging-api/ApiService/TaskDef/ExecutionRole/Resource": [
+        "/signalcraft-prod/prod-api/ApiService/TaskDef/ExecutionRole/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ApiServiceTaskDefExecutionRole43B90DD6"
           }
         ],
-        "/signalcraft-staging/staging-api/ApiService/TaskDef/ExecutionRole/DefaultPolicy/Resource": [
+        "/signalcraft-prod/prod-api/ApiService/TaskDef/ExecutionRole/DefaultPolicy/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ApiServiceTaskDefExecutionRoleDefaultPolicyDCB48050"
           }
         ],
-        "/signalcraft-staging/staging-api/ApiService/Service": [
+        "/signalcraft-prod/prod-api/ApiService/Service": [
           {
             "type": "aws:cdk:warning",
             "data": "minHealthyPercent has not been configured so the default value of 50% is used. The number of running tasks will decrease below the desired count during deployments etc. See https://github.com/aws/aws-cdk/issues/31705 [ack: @aws-cdk/aws-ecs:minHealthyPercent]",
@@ -621,255 +633,231 @@
             ]
           }
         ],
-        "/signalcraft-staging/staging-api/ApiService/Service/Service": [
+        "/signalcraft-prod/prod-api/ApiService/Service/Service": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ApiService199661B5"
           }
         ],
-        "/signalcraft-staging/staging-api/ApiService/Service/SecurityGroup/Resource": [
+        "/signalcraft-prod/prod-api/ApiService/Service/SecurityGroup/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ApiServiceSecurityGroup2592096B"
           }
         ],
-        "/signalcraft-staging/staging-api/ApiService/Service/SecurityGroup/from signalcraftstagingstagingapiApiServiceLBSecurityGroupAE3BAFDF:3000": [
+        "/signalcraft-prod/prod-api/ApiService/Service/SecurityGroup/from signalcraftprodprodapiApiServiceLBSecurityGroup04E0B48A:3000": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "ApiServiceSecurityGroupfromsignalcraftstagingstagingapiApiServiceLBSecurityGroupAE3BAFDF3000B3C4E7AB"
+            "data": "ApiServiceSecurityGroupfromsignalcraftprodprodapiApiServiceLBSecurityGroup04E0B48A300076604C6F"
           }
         ],
-        "/signalcraft-staging/staging-api/ApiCertificate/Resource": [
+        "/signalcraft-prod/prod-api/ApiCertificate/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ApiCertificate1D5B2B3B"
           }
         ],
-        "/signalcraft-staging/staging-api/ApiAliasRecord/Resource": [
+        "/signalcraft-prod/prod-api/ApiAliasRecord/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ApiAliasRecordBCE933A3"
           }
         ],
-        "/signalcraft-staging/staging-api/ApiAliasRecordV6/Resource": [
+        "/signalcraft-prod/prod-api/ApiAliasRecordV6/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ApiAliasRecordV6FAB68AE5"
           }
         ],
-        "/signalcraft-staging/staging-api/ApiLoadBalancerDns": [
+        "/signalcraft-prod/prod-api/ApiLoadBalancerDns": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ApiLoadBalancerDns"
           }
         ],
-        "/signalcraft-staging/staging-api/ApiRepositoryUri": [
+        "/signalcraft-prod/prod-api/ApiRepositoryUri": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ApiRepositoryUri"
           }
         ],
-        "/signalcraft-staging/staging-api/ApiDomain": [
+        "/signalcraft-prod/prod-api/ApiDomain": [
           {
             "type": "aws:cdk:logicalId",
             "data": "ApiDomain"
           }
         ],
-        "/signalcraft-staging/staging-api/CDKMetadata/Default": [
+        "/signalcraft-prod/prod-api/CDKMetadata/Default": [
           {
             "type": "aws:cdk:logicalId",
             "data": "CDKMetadata"
           }
         ],
-        "/signalcraft-staging/staging-api/BootstrapVersion": [
+        "/signalcraft-prod/prod-api/BootstrapVersion": [
           {
             "type": "aws:cdk:logicalId",
             "data": "BootstrapVersion"
           }
         ],
-        "/signalcraft-staging/staging-api/CheckBootstrapVersion": [
+        "/signalcraft-prod/prod-api/CheckBootstrapVersion": [
           {
             "type": "aws:cdk:logicalId",
             "data": "CheckBootstrapVersion"
           }
         ]
       },
-      "displayName": "signalcraft-staging/staging-api"
+      "displayName": "signalcraft-prod/prod-api"
     },
-    "signalcraftstagingstagingweb6D5E2D7C.assets": {
+    "signalcraftprodprodwebF4D7D9DE.assets": {
       "type": "cdk:asset-manifest",
       "properties": {
-        "file": "signalcraftstagingstagingweb6D5E2D7C.assets.json",
+        "file": "signalcraftprodprodwebF4D7D9DE.assets.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
       }
     },
-    "signalcraftstagingstagingweb6D5E2D7C": {
+    "signalcraftprodprodwebF4D7D9DE": {
       "type": "aws:cloudformation:stack",
       "environment": "aws://089080661826/us-west-2",
       "properties": {
-        "templateFile": "signalcraftstagingstagingweb6D5E2D7C.template.json",
+        "templateFile": "signalcraftprodprodwebF4D7D9DE.template.json",
         "terminationProtection": false,
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-deploy-role-089080661826-us-west-2",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-cfn-exec-role-089080661826-us-west-2",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-089080661826-us-west-2/3aff8e50a85008a386e910d80a7ac84fdb2a46867fed06c86c2b655b0f3b0dcc.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-089080661826-us-west-2/d67c1eff13484284834fdedf2044c5d36b46245f2880798ab5a24f270ae2b26b.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
-          "signalcraftstagingstagingweb6D5E2D7C.assets"
+          "signalcraftprodprodwebF4D7D9DE.assets"
         ],
         "lookupRole": {
           "arn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-lookup-role-089080661826-us-west-2",
           "requiresBootstrapStackVersion": 8,
           "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
         },
-        "stackName": "staging-staging-web"
+        "stackName": "prod-prod-web"
       },
       "dependencies": [
-        "signalcraftstagingstagingweb6D5E2D7C.assets"
+        "signalcraftprodprodwebF4D7D9DE.assets"
       ],
       "metadata": {
-        "/signalcraft-staging/staging-web/WebBucket/Resource": [
+        "/signalcraft-prod/prod-web/WebBucket/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "WebBucket12880F5B"
           }
         ],
-        "/signalcraft-staging/staging-web/WebBucket/Policy/Resource": [
+        "/signalcraft-prod/prod-web/WebBucket/Policy/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "WebBucketPolicy95D08FAA"
           }
         ],
-        "/signalcraft-staging/staging-web/WebBucket/AutoDeleteObjectsCustomResource/Default": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "WebBucketAutoDeleteObjectsCustomResource9C1A079F"
-          }
-        ],
-        "/signalcraft-staging/staging-web/Custom::S3AutoDeleteObjectsCustomResourceProvider": [
-          {
-            "type": "aws:cdk:is-custom-resource-handler-customResourceProvider",
-            "data": true
-          }
-        ],
-        "/signalcraft-staging/staging-web/Custom::S3AutoDeleteObjectsCustomResourceProvider/Role": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092"
-          }
-        ],
-        "/signalcraft-staging/staging-web/Custom::S3AutoDeleteObjectsCustomResourceProvider/Handler": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F"
-          }
-        ],
-        "/signalcraft-staging/staging-web/WebOAI/Resource": [
+        "/signalcraft-prod/prod-web/WebOAI/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "WebOAI6A7C4516"
           }
         ],
-        "/signalcraft-staging/staging-web/WebCertificate/CertificateRequestorFunction": [
+        "/signalcraft-prod/prod-web/WebCertificate/CertificateRequestorFunction": [
           {
             "type": "aws:cdk:is-custom-resource-handler-runtime-family",
             "data": 0
           }
         ],
-        "/signalcraft-staging/staging-web/WebCertificate/CertificateRequestorFunction/ServiceRole/Resource": [
+        "/signalcraft-prod/prod-web/WebCertificate/CertificateRequestorFunction/ServiceRole/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "WebCertificateCertificateRequestorFunctionServiceRoleA1705B14"
           }
         ],
-        "/signalcraft-staging/staging-web/WebCertificate/CertificateRequestorFunction/ServiceRole/DefaultPolicy/Resource": [
+        "/signalcraft-prod/prod-web/WebCertificate/CertificateRequestorFunction/ServiceRole/DefaultPolicy/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "WebCertificateCertificateRequestorFunctionServiceRoleDefaultPolicy0226058A"
           }
         ],
-        "/signalcraft-staging/staging-web/WebCertificate/CertificateRequestorFunction/Resource": [
+        "/signalcraft-prod/prod-web/WebCertificate/CertificateRequestorFunction/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "WebCertificateCertificateRequestorFunction604FB1F4"
           }
         ],
-        "/signalcraft-staging/staging-web/WebCertificate/CertificateRequestorResource/Default": [
+        "/signalcraft-prod/prod-web/WebCertificate/CertificateRequestorResource/Default": [
           {
             "type": "aws:cdk:logicalId",
             "data": "WebCertificateCertificateRequestorResourceC78570F7"
           }
         ],
-        "/signalcraft-staging/staging-web/WebDistribution/Resource": [
+        "/signalcraft-prod/prod-web/WebDistribution/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "WebDistribution59C46482"
           }
         ],
-        "/signalcraft-staging/staging-web/WebAliasRecord/Resource": [
+        "/signalcraft-prod/prod-web/WebAliasRecord/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "WebAliasRecordB1E87459"
           }
         ],
-        "/signalcraft-staging/staging-web/AWSCloudFrontPartitionHostedZoneIdMap": [
+        "/signalcraft-prod/prod-web/AWSCloudFrontPartitionHostedZoneIdMap": [
           {
             "type": "aws:cdk:logicalId",
             "data": "AWSCloudFrontPartitionHostedZoneIdMap"
           }
         ],
-        "/signalcraft-staging/staging-web/WebAliasRecordV6/Resource": [
+        "/signalcraft-prod/prod-web/WebAliasRecordV6/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "WebAliasRecordV6B60404ED"
           }
         ],
-        "/signalcraft-staging/staging-web/WebBucketName": [
+        "/signalcraft-prod/prod-web/WebBucketName": [
           {
             "type": "aws:cdk:logicalId",
             "data": "WebBucketName"
           }
         ],
-        "/signalcraft-staging/staging-web/WebDistributionId": [
+        "/signalcraft-prod/prod-web/WebDistributionId": [
           {
             "type": "aws:cdk:logicalId",
             "data": "WebDistributionId"
           }
         ],
-        "/signalcraft-staging/staging-web/WebDistributionDomainName": [
+        "/signalcraft-prod/prod-web/WebDistributionDomainName": [
           {
             "type": "aws:cdk:logicalId",
             "data": "WebDistributionDomainName"
           }
         ],
-        "/signalcraft-staging/staging-web/WebUrl": [
+        "/signalcraft-prod/prod-web/WebUrl": [
           {
             "type": "aws:cdk:logicalId",
             "data": "WebUrl"
           }
         ],
-        "/signalcraft-staging/staging-web/CDKMetadata/Default": [
+        "/signalcraft-prod/prod-web/CDKMetadata/Default": [
           {
             "type": "aws:cdk:logicalId",
             "data": "CDKMetadata"
           }
         ],
-        "/signalcraft-staging/staging-web/BootstrapVersion": [
+        "/signalcraft-prod/prod-web/BootstrapVersion": [
           {
             "type": "aws:cdk:logicalId",
             "data": "BootstrapVersion"
           }
         ],
-        "/signalcraft-staging/staging-web/CheckBootstrapVersion": [
+        "/signalcraft-prod/prod-web/CheckBootstrapVersion": [
           {
             "type": "aws:cdk:logicalId",
             "data": "CheckBootstrapVersion"
           }
         ]
       },
-      "displayName": "signalcraft-staging/staging-web"
+      "displayName": "signalcraft-prod/prod-web"
     },
     "aws-cdk-lib/feature-flag-report": {
       "type": "cdk:feature-flag-report",
