@@ -607,7 +607,7 @@
               "new ApplicationLoadBalancedFargateService2 (C:\\Users\\baxte\\Documents\\repos\\signalcraftcoop\\infra\\node_modules\\aws-cdk-lib\\aws-ecs-patterns\\lib\\fargate\\application-load-balanced-fargate-service.js:1:6099)",
               "new ApplicationLoadBalancedFargateService2 (C:\\Users\\baxte\\Documents\\repos\\signalcraftcoop\\infra\\node_modules\\aws-cdk-lib\\core\\lib\\prop-injectable.js:1:681)",
               "new ApiStack (C:\\Users\\baxte\\Documents\\repos\\signalcraftcoop\\infra\\lib\\stacks\\api-stack.ts:53:21)",
-              "new SignalcraftStage (C:\\Users\\baxte\\Documents\\repos\\signalcraftcoop\\infra\\lib\\signalcraft-stage.ts:37:5)",
+              "new SignalcraftStage (C:\\Users\\baxte\\Documents\\repos\\signalcraftcoop\\infra\\lib\\signalcraft-stage.ts:38:5)",
               "Object.<anonymous> (C:\\Users\\baxte\\Documents\\repos\\signalcraftcoop\\infra\\bin\\signalcraft-infra.ts:10:1)",
               "Module._compile (node:internal/modules/cjs/loader:1706:14)",
               "Module.m._compile (C:\\Users\\baxte\\Documents\\repos\\signalcraftcoop\\infra\\node_modules\\ts-node\\src\\index.ts:1618:23)",
@@ -708,6 +708,97 @@
       },
       "displayName": "signalcraft-prod/prod-api"
     },
+    "signalcraftprodprodwebcert34582B4B.assets": {
+      "type": "cdk:asset-manifest",
+      "properties": {
+        "file": "signalcraftprodprodwebcert34582B4B.assets.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+      }
+    },
+    "signalcraftprodprodwebcert34582B4B": {
+      "type": "aws:cloudformation:stack",
+      "environment": "aws://089080661826/us-east-1",
+      "properties": {
+        "templateFile": "signalcraftprodprodwebcert34582B4B.template.json",
+        "terminationProtection": false,
+        "validateOnSynth": false,
+        "assumeRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-deploy-role-089080661826-us-east-1",
+        "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-cfn-exec-role-089080661826-us-east-1",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-089080661826-us-east-1/3329ab72cd7a29160676879d16b29889c3cb1adf3f2b7209f492d40ee5d6cb8c.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
+        "additionalDependencies": [
+          "signalcraftprodprodwebcert34582B4B.assets"
+        ],
+        "lookupRole": {
+          "arn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-lookup-role-089080661826-us-east-1",
+          "requiresBootstrapStackVersion": 8,
+          "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+        },
+        "stackName": "prod-prod-web-cert"
+      },
+      "dependencies": [
+        "signalcraftprodprodwebcert34582B4B.assets"
+      ],
+      "metadata": {
+        "/signalcraft-prod/prod-web-cert/WebCertificate/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "WebCertificate760B17F3"
+          }
+        ],
+        "/signalcraft-prod/prod-web-cert/WebCertificateArn": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "WebCertificateArn"
+          }
+        ],
+        "/signalcraft-prod/prod-web-cert/CDKMetadata/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CDKMetadata"
+          }
+        ],
+        "/signalcraft-prod/prod-web-cert/ExportsWriteruswest209BD44F0/Resource/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ExportsWriteruswest209BD44F0A7CF058B"
+          }
+        ],
+        "/signalcraft-prod/prod-web-cert/Custom::CrossRegionExportWriterCustomResourceProvider": [
+          {
+            "type": "aws:cdk:is-custom-resource-handler-customResourceProvider",
+            "data": true
+          }
+        ],
+        "/signalcraft-prod/prod-web-cert/Custom::CrossRegionExportWriterCustomResourceProvider/Role": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomCrossRegionExportWriterCustomResourceProviderRoleC951B1E1"
+          }
+        ],
+        "/signalcraft-prod/prod-web-cert/Custom::CrossRegionExportWriterCustomResourceProvider/Handler": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomCrossRegionExportWriterCustomResourceProviderHandlerD8786E8A"
+          }
+        ],
+        "/signalcraft-prod/prod-web-cert/BootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BootstrapVersion"
+          }
+        ],
+        "/signalcraft-prod/prod-web-cert/CheckBootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CheckBootstrapVersion"
+          }
+        ]
+      },
+      "displayName": "signalcraft-prod/prod-web-cert"
+    },
     "signalcraftprodprodwebF4D7D9DE.assets": {
       "type": "cdk:asset-manifest",
       "properties": {
@@ -725,7 +816,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-deploy-role-089080661826-us-west-2",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-cfn-exec-role-089080661826-us-west-2",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-089080661826-us-west-2/d67c1eff13484284834fdedf2044c5d36b46245f2880798ab5a24f270ae2b26b.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-089080661826-us-west-2/86e9a9186a2a202009b4e02d85b752be0bd9a227b22372f3b400fae87e75f3ef.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -739,6 +830,7 @@
         "stackName": "prod-prod-web"
       },
       "dependencies": [
+        "signalcraftprodprodwebcert34582B4B",
         "signalcraftprodprodwebF4D7D9DE.assets"
       ],
       "metadata": {
@@ -758,36 +850,6 @@
           {
             "type": "aws:cdk:logicalId",
             "data": "WebOAI6A7C4516"
-          }
-        ],
-        "/signalcraft-prod/prod-web/WebCertificate/CertificateRequestorFunction": [
-          {
-            "type": "aws:cdk:is-custom-resource-handler-runtime-family",
-            "data": 0
-          }
-        ],
-        "/signalcraft-prod/prod-web/WebCertificate/CertificateRequestorFunction/ServiceRole/Resource": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "WebCertificateCertificateRequestorFunctionServiceRoleA1705B14"
-          }
-        ],
-        "/signalcraft-prod/prod-web/WebCertificate/CertificateRequestorFunction/ServiceRole/DefaultPolicy/Resource": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "WebCertificateCertificateRequestorFunctionServiceRoleDefaultPolicy0226058A"
-          }
-        ],
-        "/signalcraft-prod/prod-web/WebCertificate/CertificateRequestorFunction/Resource": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "WebCertificateCertificateRequestorFunction604FB1F4"
-          }
-        ],
-        "/signalcraft-prod/prod-web/WebCertificate/CertificateRequestorResource/Default": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "WebCertificateCertificateRequestorResourceC78570F7"
           }
         ],
         "/signalcraft-prod/prod-web/WebDistribution/Resource": [
@@ -842,6 +904,30 @@
           {
             "type": "aws:cdk:logicalId",
             "data": "CDKMetadata"
+          }
+        ],
+        "/signalcraft-prod/prod-web/ExportsReader/Resource/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ExportsReader8B249524"
+          }
+        ],
+        "/signalcraft-prod/prod-web/Custom::CrossRegionExportReaderCustomResourceProvider": [
+          {
+            "type": "aws:cdk:is-custom-resource-handler-customResourceProvider",
+            "data": true
+          }
+        ],
+        "/signalcraft-prod/prod-web/Custom::CrossRegionExportReaderCustomResourceProvider/Role": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomCrossRegionExportReaderCustomResourceProviderRole10531BBD"
+          }
+        ],
+        "/signalcraft-prod/prod-web/Custom::CrossRegionExportReaderCustomResourceProvider/Handler": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomCrossRegionExportReaderCustomResourceProviderHandler46647B68"
           }
         ],
         "/signalcraft-prod/prod-web/BootstrapVersion": [

@@ -1,0 +1,36 @@
+{
+  "version": "48.0.0",
+  "files": {
+    "8a17fb3ceee821f797100bf65fa3047c164a08c03aa5a07fbcff9a676fb73b97": {
+      "displayName": "signalcraft-staging/staging-web-cert/Custom::CrossRegionExportWriterCustomResourceProvider Code",
+      "source": {
+        "path": "..\\asset.8a17fb3ceee821f797100bf65fa3047c164a08c03aa5a07fbcff9a676fb73b97",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "089080661826-us-east-1-3df25b98": {
+          "bucketName": "cdk-hnb659fds-assets-089080661826-us-east-1",
+          "objectKey": "8a17fb3ceee821f797100bf65fa3047c164a08c03aa5a07fbcff9a676fb73b97.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-file-publishing-role-089080661826-us-east-1"
+        }
+      }
+    },
+    "65ffbf0ae442c2b647c1680ce3dd61db395e61819ed7effaf0e45e8a2858ae31": {
+      "displayName": "staging-staging-web-cert Template",
+      "source": {
+        "path": "signalcraftstagingstagingwebcertF1610537.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "089080661826-us-east-1-e2268164": {
+          "bucketName": "cdk-hnb659fds-assets-089080661826-us-east-1",
+          "objectKey": "65ffbf0ae442c2b647c1680ce3dd61db395e61819ed7effaf0e45e8a2858ae31.json",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-file-publishing-role-089080661826-us-east-1"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

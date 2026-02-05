@@ -595,7 +595,7 @@
               "new ApplicationLoadBalancedFargateService2 (C:\\Users\\baxte\\Documents\\repos\\signalcraftcoop\\infra\\node_modules\\aws-cdk-lib\\aws-ecs-patterns\\lib\\fargate\\application-load-balanced-fargate-service.js:1:6099)",
               "new ApplicationLoadBalancedFargateService2 (C:\\Users\\baxte\\Documents\\repos\\signalcraftcoop\\infra\\node_modules\\aws-cdk-lib\\core\\lib\\prop-injectable.js:1:681)",
               "new ApiStack (C:\\Users\\baxte\\Documents\\repos\\signalcraftcoop\\infra\\lib\\stacks\\api-stack.ts:53:21)",
-              "new SignalcraftStage (C:\\Users\\baxte\\Documents\\repos\\signalcraftcoop\\infra\\lib\\signalcraft-stage.ts:37:5)",
+              "new SignalcraftStage (C:\\Users\\baxte\\Documents\\repos\\signalcraftcoop\\infra\\lib\\signalcraft-stage.ts:38:5)",
               "Object.<anonymous> (C:\\Users\\baxte\\Documents\\repos\\signalcraftcoop\\infra\\bin\\signalcraft-infra.ts:10:1)",
               "Module._compile (node:internal/modules/cjs/loader:1706:14)",
               "Module.m._compile (C:\\Users\\baxte\\Documents\\repos\\signalcraftcoop\\infra\\node_modules\\ts-node\\src\\index.ts:1618:23)",
@@ -696,6 +696,97 @@
       },
       "displayName": "signalcraft-staging/staging-api"
     },
+    "signalcraftstagingstagingwebcertF1610537.assets": {
+      "type": "cdk:asset-manifest",
+      "properties": {
+        "file": "signalcraftstagingstagingwebcertF1610537.assets.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+      }
+    },
+    "signalcraftstagingstagingwebcertF1610537": {
+      "type": "aws:cloudformation:stack",
+      "environment": "aws://089080661826/us-east-1",
+      "properties": {
+        "templateFile": "signalcraftstagingstagingwebcertF1610537.template.json",
+        "terminationProtection": false,
+        "validateOnSynth": false,
+        "assumeRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-deploy-role-089080661826-us-east-1",
+        "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-cfn-exec-role-089080661826-us-east-1",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-089080661826-us-east-1/65ffbf0ae442c2b647c1680ce3dd61db395e61819ed7effaf0e45e8a2858ae31.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
+        "additionalDependencies": [
+          "signalcraftstagingstagingwebcertF1610537.assets"
+        ],
+        "lookupRole": {
+          "arn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-lookup-role-089080661826-us-east-1",
+          "requiresBootstrapStackVersion": 8,
+          "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+        },
+        "stackName": "staging-staging-web-cert"
+      },
+      "dependencies": [
+        "signalcraftstagingstagingwebcertF1610537.assets"
+      ],
+      "metadata": {
+        "/signalcraft-staging/staging-web-cert/WebCertificate/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "WebCertificate760B17F3"
+          }
+        ],
+        "/signalcraft-staging/staging-web-cert/WebCertificateArn": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "WebCertificateArn"
+          }
+        ],
+        "/signalcraft-staging/staging-web-cert/CDKMetadata/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CDKMetadata"
+          }
+        ],
+        "/signalcraft-staging/staging-web-cert/ExportsWriteruswest209BD44F0/Resource/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ExportsWriteruswest209BD44F0A7CF058B"
+          }
+        ],
+        "/signalcraft-staging/staging-web-cert/Custom::CrossRegionExportWriterCustomResourceProvider": [
+          {
+            "type": "aws:cdk:is-custom-resource-handler-customResourceProvider",
+            "data": true
+          }
+        ],
+        "/signalcraft-staging/staging-web-cert/Custom::CrossRegionExportWriterCustomResourceProvider/Role": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomCrossRegionExportWriterCustomResourceProviderRoleC951B1E1"
+          }
+        ],
+        "/signalcraft-staging/staging-web-cert/Custom::CrossRegionExportWriterCustomResourceProvider/Handler": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomCrossRegionExportWriterCustomResourceProviderHandlerD8786E8A"
+          }
+        ],
+        "/signalcraft-staging/staging-web-cert/BootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BootstrapVersion"
+          }
+        ],
+        "/signalcraft-staging/staging-web-cert/CheckBootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CheckBootstrapVersion"
+          }
+        ]
+      },
+      "displayName": "signalcraft-staging/staging-web-cert"
+    },
     "signalcraftstagingstagingweb6D5E2D7C.assets": {
       "type": "cdk:asset-manifest",
       "properties": {
@@ -713,7 +804,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-deploy-role-089080661826-us-west-2",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-cfn-exec-role-089080661826-us-west-2",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-089080661826-us-west-2/3aff8e50a85008a386e910d80a7ac84fdb2a46867fed06c86c2b655b0f3b0dcc.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-089080661826-us-west-2/2997d906367fb43d7682d53dd2d46547133f4c292650fb0eb704047230790b91.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -727,6 +818,7 @@
         "stackName": "staging-staging-web"
       },
       "dependencies": [
+        "signalcraftstagingstagingwebcertF1610537",
         "signalcraftstagingstagingweb6D5E2D7C.assets"
       ],
       "metadata": {
@@ -770,36 +862,6 @@
           {
             "type": "aws:cdk:logicalId",
             "data": "WebOAI6A7C4516"
-          }
-        ],
-        "/signalcraft-staging/staging-web/WebCertificate/CertificateRequestorFunction": [
-          {
-            "type": "aws:cdk:is-custom-resource-handler-runtime-family",
-            "data": 0
-          }
-        ],
-        "/signalcraft-staging/staging-web/WebCertificate/CertificateRequestorFunction/ServiceRole/Resource": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "WebCertificateCertificateRequestorFunctionServiceRoleA1705B14"
-          }
-        ],
-        "/signalcraft-staging/staging-web/WebCertificate/CertificateRequestorFunction/ServiceRole/DefaultPolicy/Resource": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "WebCertificateCertificateRequestorFunctionServiceRoleDefaultPolicy0226058A"
-          }
-        ],
-        "/signalcraft-staging/staging-web/WebCertificate/CertificateRequestorFunction/Resource": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "WebCertificateCertificateRequestorFunction604FB1F4"
-          }
-        ],
-        "/signalcraft-staging/staging-web/WebCertificate/CertificateRequestorResource/Default": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "WebCertificateCertificateRequestorResourceC78570F7"
           }
         ],
         "/signalcraft-staging/staging-web/WebDistribution/Resource": [
@@ -854,6 +916,30 @@
           {
             "type": "aws:cdk:logicalId",
             "data": "CDKMetadata"
+          }
+        ],
+        "/signalcraft-staging/staging-web/ExportsReader/Resource/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ExportsReader8B249524"
+          }
+        ],
+        "/signalcraft-staging/staging-web/Custom::CrossRegionExportReaderCustomResourceProvider": [
+          {
+            "type": "aws:cdk:is-custom-resource-handler-customResourceProvider",
+            "data": true
+          }
+        ],
+        "/signalcraft-staging/staging-web/Custom::CrossRegionExportReaderCustomResourceProvider/Role": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomCrossRegionExportReaderCustomResourceProviderRole10531BBD"
+          }
+        ],
+        "/signalcraft-staging/staging-web/Custom::CrossRegionExportReaderCustomResourceProvider/Handler": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomCrossRegionExportReaderCustomResourceProviderHandler46647B68"
           }
         ],
         "/signalcraft-staging/staging-web/BootstrapVersion": [
