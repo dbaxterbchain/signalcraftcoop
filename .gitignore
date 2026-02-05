@@ -17,3 +17,5 @@ yarn-error.log*
 .idea/
 .vscode/
 infra/cdk.out/
+infra/cdk.out.*
+.tmp.*

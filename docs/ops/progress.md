@@ -23,6 +23,7 @@ Last updated: 2026-02-05
 - DB connections now target TLS verification via CA bundle (`DB_SSLMODE=verify-full` + `DB_SSL_CA_PATH`).
 - Cost reductions: prod NAT gateways reduced to 1; staging ECS logs retain 7 days; ECR lifecycle keeps last 5 (staging) / 10 (prod) images.
 - Staging Lambda HTTP API verified (`/products` returns `[]`) and staging web now points to the Lambda URL.
+- Staging web redeployed after Lambda cutover (2026-02-05).
 
 ## Completed
 - React + MUI web app with landing, products, custom order, orders, and order detail pages.
