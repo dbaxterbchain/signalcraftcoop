@@ -21,6 +21,7 @@ Last updated: 2026-02-04
 - Cognito prod callback/logout URLs now prod-only (localhost removed).
 - Prisma CLI supports DB_* envs in `prisma.config.ts` and includes schema in the API image.
 - DB connections now target TLS verification via CA bundle (`DB_SSLMODE=verify-full` + `DB_SSL_CA_PATH`).
+- Cost reductions: prod NAT gateways reduced to 1; staging ECS logs retain 7 days; ECR lifecycle keeps last 5 (staging) / 10 (prod) images.
 
 ## Completed
 - React + MUI web app with landing, products, custom order, orders, and order detail pages.
@@ -40,6 +41,7 @@ Last updated: 2026-02-04
 - CI/CD hardening (prod deploy workflow permissions + docs).
 - Infra cleanup: replace deprecated CDK constructs (`DnsValidatedCertificate` -> `Certificate`, `S3Origin` -> `S3BucketOrigin`).
 - Cost optimization plan: migrate staging API to Lambda + HTTP API; evaluate prod cutover if performance is acceptable.
+- Lambda + HTTP API prep: confirm auth model (Cognito JWT authorizer), DB access pattern (RDS Proxy or Prisma Data Proxy), and staging cutover steps.
 
 ## Next milestones
 1) Payments

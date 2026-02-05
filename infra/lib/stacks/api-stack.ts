@@ -46,9 +46,16 @@ export class ApiStack extends cdk.Stack {
       repositoryName: `signalcraft-api-${props.config.name}`,
       imageScanOnPush: true,
     });
+    repo.addLifecycleRule({
+      tagStatus: ecr.TagStatus.ANY,
+      maxImageCount: props.config.name === 'prod' ? 10 : 5,
+    });
 
     const logGroup = new logs.LogGroup(this, 'ApiLogs', {
-      retention: logs.RetentionDays.ONE_MONTH,
+      retention:
+        props.config.name === 'prod'
+          ? logs.RetentionDays.ONE_MONTH
+          : logs.RetentionDays.ONE_WEEK,
     });
 
     const usePublicSubnets = props.config.name === 'staging';

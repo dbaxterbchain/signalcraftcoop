@@ -35,7 +35,7 @@ export const stageConfigs: Record<StageName, StageConfig> = {
     webDomain: 'app.signalcraftcoop.com',
     apiDomain: 'api.signalcraftcoop.com',
     region: 'us-west-2',
-    natGateways: 2,
+    natGateways: 1,
     dbName: 'signalcraft',
     dbAllocatedStorage: 50,
     dbBackupRetentionDays: 7,
