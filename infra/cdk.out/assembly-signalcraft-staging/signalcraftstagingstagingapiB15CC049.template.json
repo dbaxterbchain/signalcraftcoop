@@ -629,7 +629,7 @@
     ],
     "NetworkConfiguration": {
      "AwsvpcConfiguration": {
-      "AssignPublicIp": "DISABLED",
+      "AssignPublicIp": "ENABLED",
       "SecurityGroups": [
        {
         "Fn::GetAtt": [
@@ -640,10 +640,10 @@
       ],
       "Subnets": [
        {
-        "Fn::ImportValue": "staging-staging-network:ExportsOutputRefVpcprivateSubnet1SubnetCEAD37168693D373"
+        "Fn::ImportValue": "staging-staging-network:ExportsOutputRefVpcpublicSubnet1Subnet2BB74ED74EB42ADC"
        },
        {
-        "Fn::ImportValue": "staging-staging-network:ExportsOutputRefVpcprivateSubnet2Subnet2DE7549CDF5ACE3D"
+        "Fn::ImportValue": "staging-staging-network:ExportsOutputRefVpcpublicSubnet2SubnetE34B022AC8BB6627"
        }
       ]
      }

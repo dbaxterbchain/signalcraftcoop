@@ -18,7 +18,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-deploy-role-089080661826-us-west-2",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-cfn-exec-role-089080661826-us-west-2",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-089080661826-us-west-2/cb322812c4b224b1c9ccf8277e8eeb7d8efb0aadf4269bfdd76b9cbec2e0f422.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-089080661826-us-west-2/eed1a9f788a714dfe90fa712f18ef2b5e0d3c16d9e7f171db04b42a1a5622df6.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -65,18 +65,6 @@
             "data": "VpcpublicSubnet1DefaultRouteB88F9E93"
           }
         ],
-        "/signalcraft-staging/staging-network/Vpc/publicSubnet1/EIP": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "VpcpublicSubnet1EIP411541E6"
-          }
-        ],
-        "/signalcraft-staging/staging-network/Vpc/publicSubnet1/NATGateway": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "VpcpublicSubnet1NATGatewayA036E8A6"
-          }
-        ],
         "/signalcraft-staging/staging-network/Vpc/publicSubnet2/Subnet": [
           {
             "type": "aws:cdk:logicalId",
@@ -119,12 +107,6 @@
             "data": "VpcprivateSubnet1RouteTableAssociationEEBD93CE"
           }
         ],
-        "/signalcraft-staging/staging-network/Vpc/privateSubnet1/DefaultRoute": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "VpcprivateSubnet1DefaultRouteB506891A"
-          }
-        ],
         "/signalcraft-staging/staging-network/Vpc/privateSubnet2/Subnet": [
           {
             "type": "aws:cdk:logicalId",
@@ -141,12 +123,6 @@
           {
             "type": "aws:cdk:logicalId",
             "data": "VpcprivateSubnet2RouteTableAssociationB691E645"
-          }
-        ],
-        "/signalcraft-staging/staging-network/Vpc/privateSubnet2/DefaultRoute": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "VpcprivateSubnet2DefaultRouteBAC3C1C3"
           }
         ],
         "/signalcraft-staging/staging-network/Vpc/IGW": [
@@ -454,7 +430,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-deploy-role-089080661826-us-west-2",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-cfn-exec-role-089080661826-us-west-2",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-089080661826-us-west-2/b21beb4608c39ba92a13d67e5e91214a94120de5bd95cabfbbacb35ceeceaab9.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-089080661826-us-west-2/863dd6bf67677edf2f8eaae9bdbbb5c9b265c1158f04d4b2c44d2357ef0f4e5c.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -594,7 +570,7 @@
               "new FargateService2 (C:\\Users\\baxte\\Documents\\repos\\signalcraftcoop\\infra\\node_modules\\aws-cdk-lib\\core\\lib\\prop-injectable.js:1:681)",
               "new ApplicationLoadBalancedFargateService2 (C:\\Users\\baxte\\Documents\\repos\\signalcraftcoop\\infra\\node_modules\\aws-cdk-lib\\aws-ecs-patterns\\lib\\fargate\\application-load-balanced-fargate-service.js:1:6099)",
               "new ApplicationLoadBalancedFargateService2 (C:\\Users\\baxte\\Documents\\repos\\signalcraftcoop\\infra\\node_modules\\aws-cdk-lib\\core\\lib\\prop-injectable.js:1:681)",
-              "new ApiStack (C:\\Users\\baxte\\Documents\\repos\\signalcraftcoop\\infra\\lib\\stacks\\api-stack.ts:53:21)",
+              "new ApiStack (C:\\Users\\baxte\\Documents\\repos\\signalcraftcoop\\infra\\lib\\stacks\\api-stack.ts:55:21)",
               "new SignalcraftStage (C:\\Users\\baxte\\Documents\\repos\\signalcraftcoop\\infra\\lib\\signalcraft-stage.ts:38:5)",
               "Object.<anonymous> (C:\\Users\\baxte\\Documents\\repos\\signalcraftcoop\\infra\\bin\\signalcraft-infra.ts:10:1)",
               "Module._compile (node:internal/modules/cjs/loader:1706:14)",

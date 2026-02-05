@@ -1,16 +1,16 @@
 {
   "version": "48.0.0",
   "files": {
-    "cb322812c4b224b1c9ccf8277e8eeb7d8efb0aadf4269bfdd76b9cbec2e0f422": {
+    "eed1a9f788a714dfe90fa712f18ef2b5e0d3c16d9e7f171db04b42a1a5622df6": {
       "displayName": "staging-staging-network Template",
       "source": {
         "path": "signalcraftstagingstagingnetworkC0D598D9.template.json",
         "packaging": "file"
       },
       "destinations": {
-        "089080661826-us-west-2-d0546a22": {
+        "089080661826-us-west-2-8c48abb7": {
           "bucketName": "cdk-hnb659fds-assets-089080661826-us-west-2",
-          "objectKey": "cb322812c4b224b1c9ccf8277e8eeb7d8efb0aadf4269bfdd76b9cbec2e0f422.json",
+          "objectKey": "eed1a9f788a714dfe90fa712f18ef2b5e0d3c16d9e7f171db04b42a1a5622df6.json",
           "region": "us-west-2",
           "assumeRoleArn": "arn:${AWS::Partition}:iam::089080661826:role/cdk-hnb659fds-file-publishing-role-089080661826-us-west-2"
         }
