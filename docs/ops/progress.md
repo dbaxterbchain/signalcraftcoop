@@ -1,6 +1,6 @@
 # Project Progress
 
-Last updated: 2026-02-04
+Last updated: 2026-02-05
 
 ## Current status
 - Core web + API scaffolding in place with Cognito Hosted UI auth.
@@ -22,6 +22,7 @@ Last updated: 2026-02-04
 - Prisma CLI supports DB_* envs in `prisma.config.ts` and includes schema in the API image.
 - DB connections now target TLS verification via CA bundle (`DB_SSLMODE=verify-full` + `DB_SSL_CA_PATH`).
 - Cost reductions: prod NAT gateways reduced to 1; staging ECS logs retain 7 days; ECR lifecycle keeps last 5 (staging) / 10 (prod) images.
+- Staging Lambda HTTP API verified (`/products` returns `[]`) and staging web now points to the Lambda URL.
 
 ## Completed
 - React + MUI web app with landing, products, custom order, orders, and order detail pages.
@@ -42,6 +43,8 @@ Last updated: 2026-02-04
 - Infra cleanup: replace deprecated CDK constructs (`DnsValidatedCertificate` -> `Certificate`, `S3Origin` -> `S3BucketOrigin`).
 - Cost optimization plan: migrate staging API to Lambda + HTTP API; evaluate prod cutover if performance is acceptable.
 - Lambda + HTTP API prep: confirm auth model (Cognito JWT authorizer), DB access pattern (RDS Proxy or Prisma Data Proxy), and staging cutover steps.
+- Lambda + HTTP API scaffolding added (feature-flagged via CDK context `enableLambdaApi=true`).
+- Staging Lambda HTTP API deployed (test URL: `https://urshmyqwad.execute-api.us-west-2.amazonaws.com`).
 
 ## Next milestones
 1) Payments
@@ -86,5 +89,6 @@ Last updated: 2026-02-04
 - Staging cost optimization: NAT removed and ECS tasks run in public subnets with public IPs (lower cost; public exposure controlled by SGs).
 - Staging ECS scheduled scaling: weekdays scale up at 16:00 UTC and down at 02:00 UTC (UTC schedule; adjust for DST if needed).
 - Lambda + HTTP API caveat: if Lambdas run in a VPC and need outbound internet, NAT costs return; avoid by limiting outbound or adding VPC endpoints. Consider RDS Proxy / Prisma Data Proxy for connection limits.
+- Lambda test deploy command: `npx cdk deploy -c stage=staging -c enableLambdaApi=true signalcraft-staging/staging-api-lambda`.
 - Cost review checklist: NAT gateways, ALBs, ECS services, RDS (instances + snapshots + backups), CloudWatch log retention, ECR image retention, Secrets Manager secrets, VPC endpoints, CloudFront logs, unused Route53 health checks.
 

@@ -23,6 +23,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@codegenie/serverless-express": "^4.15.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.1",
@@ -51,6 +52,7 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^22.10.7",
     "@types/cookie-parser": "^1.4.7",
+    "@types/aws-lambda": "^8.10.152",
     "@types/passport-jwt": "^4.0.1",
     "@types/pg": "^8.16.0",
     "@types/supertest": "^6.0.2",
