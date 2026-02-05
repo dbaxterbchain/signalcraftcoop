@@ -12,6 +12,7 @@ import { StageConfig } from '../config';
 
 export type WebStackProps = cdk.StackProps & {
   config: StageConfig;
+  certificateArn: string;
 };
 
 export class WebStack extends cdk.Stack {
@@ -43,14 +44,10 @@ export class WebStack extends cdk.Stack {
     );
     bucket.grantRead(originAccessIdentity);
 
-    const certificate = new acm.DnsValidatedCertificate(
+    const certificate = acm.Certificate.fromCertificateArn(
       this,
       'WebCertificate',
-      {
-        domainName: props.config.webDomain,
-        hostedZone: zone,
-        region: 'us-east-1',
-      },
+      props.certificateArn,
     );
 
     const distribution = new cloudfront.Distribution(this, 'WebDistribution', {
@@ -58,7 +55,9 @@ export class WebStack extends cdk.Stack {
       domainNames: [props.config.webDomain],
       certificate,
       defaultBehavior: {
-        origin: new origins.S3Origin(bucket, { originAccessIdentity }),
+        origin: origins.S3BucketOrigin.withOriginAccessIdentity(bucket, {
+          originAccessIdentity,
+        }),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         compress: true,
       },

@@ -6,6 +6,7 @@ import { DataStack } from './stacks/data-stack';
 import { ApiStack } from './stacks/api-stack';
 import { CognitoStack } from './stacks/cognito-stack';
 import { WebStack } from './stacks/web-stack';
+import { WebCertificateStack } from './stacks/web-cert-stack';
 
 export type SignalcraftStageProps = cdk.StageProps & {
   stageName: string;
@@ -42,9 +43,21 @@ export class SignalcraftStage extends cdk.Stage {
       cognito,
     });
 
+    const webCertificate = new WebCertificateStack(
+      this,
+      `${stageName}-web-cert`,
+      {
+        env: { account: props.env?.account, region: 'us-east-1' },
+        crossRegionReferences: true,
+        config,
+      },
+    );
+
     new WebStack(this, `${stageName}-web`, {
       env: props.env,
+      crossRegionReferences: true,
       config,
+      certificateArn: webCertificate.certificate.certificateArn,
     });
   }
 }
