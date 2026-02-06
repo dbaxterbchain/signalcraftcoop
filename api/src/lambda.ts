@@ -3,6 +3,8 @@ import { NestFactory } from '@nestjs/core';
 import serverlessExpress from '@codegenie/serverless-express';
 import type { Handler } from 'aws-lambda';
 import cookieParser from 'cookie-parser';
+import type { Express } from 'express';
+import { eventContext } from '@codegenie/serverless-express/src/middleware';
 import { AppModule } from './app.module';
 
 let cachedServer: ReturnType<typeof serverlessExpress> | undefined;
@@ -16,6 +18,7 @@ async function bootstrapServer() {
     credentials: true,
   });
   app.use(cookieParser());
+  app.use(eventContext());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -25,7 +28,7 @@ async function bootstrapServer() {
     }),
   );
   await app.init();
-  const expressApp = app.getHttpAdapter().getInstance();
+  const expressApp = app.getHttpAdapter().getInstance() as Express;
   return serverlessExpress({ app: expressApp });
 }
 

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Res, UseGuards } from '@nestjs/common';
 import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { CognitoJwtGuard } from './guards/cognito-jwt.guard';
@@ -13,34 +13,6 @@ export class AuthController {
   @Get('me')
   getMe(@CurrentUser() user?: AuthUser) {
     return this.authService.getCurrentUser(user);
-  }
-
-  @Post('exchange')
-  async exchange(
-    @Body()
-    payload: { code: string; codeVerifier: string; redirectUri: string },
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    const result = await this.authService.exchangeCode(payload);
-    const secure = process.env.NODE_ENV === 'production';
-    const maxAge = result.expiresIn ? result.expiresIn * 1000 : undefined;
-    res.cookie('access_token', result.accessToken, {
-      httpOnly: true,
-      secure,
-      sameSite: 'lax',
-      maxAge,
-      path: '/',
-    });
-    if (result.idToken) {
-      res.cookie('id_token', result.idToken, {
-        httpOnly: true,
-        secure,
-        sameSite: 'lax',
-        maxAge,
-        path: '/',
-      });
-    }
-    return { ok: true };
   }
 
   @Post('logout')

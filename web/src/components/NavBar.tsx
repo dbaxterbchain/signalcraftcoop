@@ -21,7 +21,7 @@ import useAuth from '../auth/useAuth';
 export default function NavBar() {
   const [open, setOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   return (
     <AppBar
@@ -81,7 +81,7 @@ export default function NavBar() {
                   <MenuItem component={RouterLink} to="/orders" onClick={() => setAnchorEl(null)}>
                     Orders
                   </MenuItem>
-                  <MenuItem disabled>{user?.email ?? user?.username ?? 'Account'}</MenuItem>
+                  <MenuItem disabled>Account</MenuItem>
                   <MenuItem
                     onClick={() => {
                       setAnchorEl(null);

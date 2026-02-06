@@ -1,6 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import {
   aws_apigatewayv2 as apigw,
+  aws_apigatewayv2_authorizers as apigwAuthorizers,
   aws_apigatewayv2_integrations as apigwIntegrations,
   aws_ec2 as ec2,
   aws_lambda as lambda,
@@ -49,23 +50,28 @@ export class ApiLambdaStack extends cdk.Stack {
 
     const apiLambda = new lambda.Function(this, 'ApiLambda', {
       code: lambda.Code.fromAsset(repoRoot, {
-        assetHashType: cdk.AssetHashType.CUSTOM,
-        assetHash: 'lambda-bundle-no-bin-links-v1',
+        assetHashType: cdk.AssetHashType.OUTPUT,
         bundling: {
           image: lambda.Runtime.NODEJS_20_X.bundlingImage,
           command: [
             'bash',
             '-c',
             [
-              'cd /asset-input/api',
               'mkdir -p /tmp/npm-cache',
               'chmod -R 777 /tmp/npm-cache',
+              'rm -rf /tmp/build',
+              'mkdir -p /tmp/build',
+              'cp /asset-input/api/package.json /asset-input/api/package-lock.json /tmp/build/',
+              'cp -R /asset-input/api/src /tmp/build/src',
+              'cp -R /asset-input/api/prisma /tmp/build/prisma',
+              'cp /asset-input/api/prisma.config.ts /asset-input/api/tsconfig.json /asset-input/api/tsconfig.build.json /tmp/build/',
+              'cd /tmp/build',
               'NPM_CONFIG_CACHE=/tmp/npm-cache npm ci',
               'DATABASE_URL=postgresql://prisma:prisma@localhost:5432/prisma?schema=public npx prisma generate --schema=prisma/schema.prisma',
               'npm run build',
               'NPM_CONFIG_CACHE=/tmp/npm-cache npm prune --omit=dev',
               'mkdir -p /asset-output/certs',
-              'cp certs/rds-ca.pem /asset-output/certs/rds-ca.pem',
+              'cp /asset-input/api/certs/rds-ca.pem /asset-output/certs/rds-ca.pem',
               'cp -R dist /asset-output/dist',
               'cp -R node_modules /asset-output/node_modules',
               'find /asset-output/node_modules -type l -delete',
@@ -109,12 +115,38 @@ export class ApiLambdaStack extends cdk.Stack {
 
     const httpApi = new apigw.HttpApi(this, 'HttpApi', {
       corsPreflight: {
-        allowHeaders: ['*'],
-        allowMethods: [apigw.CorsHttpMethod.ANY],
+        allowHeaders: [
+          'authorization',
+          'content-type',
+          'x-amz-date',
+          'x-api-key',
+          'x-amz-security-token',
+          'x-amz-user-agent',
+          'x-requested-with',
+          'accept',
+          'origin',
+        ],
+        allowMethods: [
+          apigw.CorsHttpMethod.GET,
+          apigw.CorsHttpMethod.POST,
+          apigw.CorsHttpMethod.PUT,
+          apigw.CorsHttpMethod.PATCH,
+          apigw.CorsHttpMethod.DELETE,
+          apigw.CorsHttpMethod.OPTIONS,
+        ],
         allowOrigins: [webOrigin.valueAsString],
         allowCredentials: true,
       },
     });
+
+    const issuer = `https://cognito-idp.${props.config.region}.amazonaws.com/${props.cognito.userPoolId}`;
+    const jwtAuthorizer = new apigwAuthorizers.HttpJwtAuthorizer(
+      'JwtAuthorizer',
+      issuer,
+      {
+        jwtAudience: [props.cognito.userPoolClientId],
+      },
+    );
 
     const integration = new apigwIntegrations.HttpLambdaIntegration(
       'LambdaIntegration',
@@ -122,13 +154,32 @@ export class ApiLambdaStack extends cdk.Stack {
     );
 
     httpApi.addRoutes({
-      path: '/',
-      methods: [apigw.HttpMethod.ANY],
+      path: '/products',
+      methods: [apigw.HttpMethod.GET],
       integration,
     });
     httpApi.addRoutes({
+      path: '/auth/identity-pool-config',
+      methods: [apigw.HttpMethod.GET],
+      integration,
+    });
+    const protectedMethods = [
+      apigw.HttpMethod.GET,
+      apigw.HttpMethod.POST,
+      apigw.HttpMethod.PUT,
+      apigw.HttpMethod.PATCH,
+      apigw.HttpMethod.DELETE,
+    ];
+
+    httpApi.addRoutes({
       path: '/{proxy+}',
-      methods: [apigw.HttpMethod.ANY],
+      methods: protectedMethods,
+      integration,
+      authorizer: jwtAuthorizer,
+    });
+    httpApi.addRoutes({
+      path: '/{proxy+}',
+      methods: [apigw.HttpMethod.OPTIONS],
       integration,
     });
 

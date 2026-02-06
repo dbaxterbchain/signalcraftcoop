@@ -1,5 +1,8 @@
 const AUTH_EVENT = 'signalcraft-auth-changed';
 const PKCE_VERIFIER_KEY = 'pkce_verifier';
+const ACCESS_TOKEN_KEY = 'auth_access_token';
+const ID_TOKEN_KEY = 'auth_id_token';
+const EXPIRES_AT_KEY = 'auth_expires_at';
 
 type AuthUser = {
   sub?: string;
@@ -45,6 +48,59 @@ function emitAuthChanged() {
 
 export const AUTH_CHANGED_EVENT = AUTH_EVENT;
 
+function clearStoredTokens() {
+  sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+  sessionStorage.removeItem(ID_TOKEN_KEY);
+  sessionStorage.removeItem(EXPIRES_AT_KEY);
+}
+
+function storeTokens(payload: {
+  access_token: string;
+  id_token?: string;
+  expires_in?: number;
+}) {
+  sessionStorage.setItem(ACCESS_TOKEN_KEY, payload.access_token);
+  if (payload.id_token) {
+    sessionStorage.setItem(ID_TOKEN_KEY, payload.id_token);
+  }
+  if (payload.expires_in) {
+    const expiresAt = Date.now() + payload.expires_in * 1000;
+    sessionStorage.setItem(EXPIRES_AT_KEY, `${expiresAt}`);
+  }
+}
+
+function isTokenExpired() {
+  const expiresAt = sessionStorage.getItem(EXPIRES_AT_KEY);
+  if (!expiresAt) {
+    return false;
+  }
+  const value = Number(expiresAt);
+  if (!Number.isFinite(value)) {
+    return false;
+  }
+  return Date.now() >= value;
+}
+
+export function getAccessToken() {
+  if (isTokenExpired()) {
+    clearStoredTokens();
+    return null;
+  }
+  return sessionStorage.getItem(ACCESS_TOKEN_KEY);
+}
+
+export function getIdToken() {
+  if (isTokenExpired()) {
+    clearStoredTokens();
+    return null;
+  }
+  return sessionStorage.getItem(ID_TOKEN_KEY);
+}
+
+export function getApiToken() {
+  return getIdToken() ?? getAccessToken();
+}
+
 export async function loginWithHostedUI(returnTo = '/orders') {
   const { domain, clientId, redirectUri } = getConfig();
   const verifier = await generateCodeVerifier();
@@ -66,24 +122,56 @@ export async function loginWithHostedUI(returnTo = '/orders') {
 }
 
 export async function handleAuthCallback(code: string) {
-  const { apiUrl, redirectUri } = getConfig();
+  const { domain, clientId, redirectUri } = getConfig();
   const verifier = sessionStorage.getItem(PKCE_VERIFIER_KEY);
   if (!verifier) {
     throw new Error('Missing PKCE verifier. Try signing in again.');
   }
 
-  const response = await fetch(`${apiUrl}/auth/exchange`, {
+  const params = new URLSearchParams({
+    grant_type: 'authorization_code',
+    client_id: clientId,
+    code,
+    code_verifier: verifier,
+    redirect_uri: redirectUri,
+  });
+
+  const response = await fetch(`${domain}/oauth2/token`, {
     method: 'POST',
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ code, codeVerifier: verifier, redirectUri }),
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: params.toString(),
   });
 
   if (!response.ok) {
-    const text = await response.text();
-    throw new Error(text || 'Token exchange failed');
+    let message = 'Token exchange failed';
+    try {
+      const payload = (await response.json()) as { error?: string; error_description?: string };
+      message = payload.error_description ?? payload.error ?? message;
+    } catch {
+      const text = await response.text();
+      if (text) {
+        message = text;
+      }
+    }
+    throw new Error(message);
   }
 
+  const tokens = (await response.json()) as {
+    access_token: string;
+    id_token?: string;
+    expires_in?: number;
+  };
+
+  if (!tokens.access_token) {
+    throw new Error('Missing access token from Cognito');
+  }
+  if (!tokens.id_token) {
+    throw new Error(
+      'Missing id token from Cognito. Ensure the app client allows the "openid" scope.',
+    );
+  }
+
+  storeTokens(tokens);
   sessionStorage.removeItem(PKCE_VERIFIER_KEY);
   emitAuthChanged();
 }
@@ -98,27 +186,37 @@ export function clearReturnTo() {
 
 export async function fetchCurrentUser(): Promise<AuthUser | null> {
   const { apiUrl } = getConfig();
+  const token = getApiToken();
+  if (!token) {
+    return null;
+  }
   const response = await fetch(`${apiUrl}/auth/me`, {
-    credentials: 'include',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
   if (!response.ok) {
+    if (response.status === 401) {
+      clearStoredTokens();
+      emitAuthChanged();
+    }
     return null;
   }
   return (await response.json()) as AuthUser;
 }
 
 export async function logout() {
-  const { apiUrl } = getConfig();
-  const response = await fetch(`${apiUrl}/auth/logout`, {
-    method: 'POST',
-    credentials: 'include',
-  });
+  const { domain, clientId, logoutUri } = getConfig();
+  clearStoredTokens();
   emitAuthChanged();
-  if (!response.ok) {
+
+  if (!logoutUri) {
     return;
   }
-  const data = (await response.json()) as { logoutUrl?: string };
-  if (data.logoutUrl) {
-    window.location.assign(data.logoutUrl);
-  }
+
+  const params = new URLSearchParams({
+    client_id: clientId,
+    logout_uri: logoutUri,
+  });
+  window.location.assign(`${domain}/logout?${params.toString()}`);
 }
