@@ -109,6 +109,7 @@ export class ApiLambdaStack extends cdk.Stack {
         COGNITO_DOMAIN: props.cognito.domain,
         COGNITO_LOGOUT_URI: `https://${props.config.webDomain}/`,
         WEB_ORIGIN: webOrigin.valueAsString,
+        ALLOW_MOCK_PAYMENTS: props.config.allowMockPayments ? 'true' : 'false',
         DB_SSLMODE: 'verify-full',
         DB_SSL_REJECT_UNAUTHORIZED: 'true',
         DB_SSL_CA_PATH: '/var/task/certs/rds-ca.pem',

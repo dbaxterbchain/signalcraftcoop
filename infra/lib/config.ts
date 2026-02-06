@@ -12,6 +12,7 @@ export type StageConfig = {
   dbAllocatedStorage: number;
   dbBackupRetentionDays: number;
   dbDeletionProtection: boolean;
+  allowMockPayments: boolean;
 };
 
 export const stageConfigs: Record<StageName, StageConfig> = {
@@ -27,6 +28,7 @@ export const stageConfigs: Record<StageName, StageConfig> = {
     dbAllocatedStorage: 20,
     dbBackupRetentionDays: 1,
     dbDeletionProtection: false,
+    allowMockPayments: true,
   },
   prod: {
     name: 'prod',
@@ -40,5 +42,6 @@ export const stageConfigs: Record<StageName, StageConfig> = {
     dbAllocatedStorage: 50,
     dbBackupRetentionDays: 7,
     dbDeletionProtection: true,
+    allowMockPayments: false,
   },
 };

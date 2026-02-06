@@ -8,6 +8,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderStatus, OrderType, PaymentStatus } from './dto/order.enums';
+import { UpdatePaymentStatusDto } from './dto/update-payment-status.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 
 type OrderListFilters = {
@@ -226,6 +227,43 @@ export class OrdersService {
     const order = await this.prisma.order.update({
       where: { id: orderId },
       data: { status: orderStatusToDb[payload.status] },
+      include: { items: { include: { nfcConfig: true } } },
+    });
+
+    return {
+      id: order.id,
+      orderNumber: order.orderNumber,
+      type: orderTypeFromDb[order.type],
+      status: orderStatusFromDb[order.status],
+      paymentStatus: order.paymentStatus,
+      items: order.items.map((item) => ({
+        id: item.id,
+        productId: item.productId ?? undefined,
+        title: item.title,
+        sku: item.sku ?? undefined,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        nfcConfig: item.nfcConfig
+          ? {
+              url: item.nfcConfig.url,
+              kind: item.nfcConfig.kind ?? undefined,
+              notes: item.nfcConfig.notes ?? undefined,
+            }
+          : undefined,
+        designId: item.designId ?? undefined,
+      })),
+      subtotal: order.subtotal,
+      tax: order.tax,
+      shipping: order.shipping,
+      total: order.total,
+      createdAt: order.createdAt.toISOString(),
+    };
+  }
+
+  async updatePaymentStatus(orderId: string, payload: UpdatePaymentStatusDto) {
+    const order = await this.prisma.order.update({
+      where: { id: orderId },
+      data: { paymentStatus: paymentStatusToDb[payload.status] },
       include: { items: { include: { nfcConfig: true } } },
     });
 

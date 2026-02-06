@@ -29,6 +29,8 @@ Last updated: 2026-02-06
   - Prod: `https://api.signalcraftcoop.com`
 - Migration Lambda added and wired into CI for staging + prod.
 - GitHub Actions OIDC roles updated for CDK bootstrap access (SSM + assets bucket + PassRole).
+- Mock payment controls added for staging testing (paid/failed updates).
+- Admin-only design upload UI added for order detail reviews.
 
 ## Completed
 - React + MUI web app with landing, products, custom order, orders, and order detail pages.
@@ -44,14 +46,14 @@ Last updated: 2026-02-06
 
 ## In progress
 - Orders/design review workflow wiring to real data and uploads.
-- Finalizing auth UX and error handling.
+- Finalizing auth UX and error handling (post-login loading state).
 - CI/CD hardening (prod deploy workflow permissions + docs).
 - Infra cleanup: replace deprecated CDK constructs (`DnsValidatedCertificate` -> `Certificate`, `S3Origin` -> `S3BucketOrigin`).
 
 ## Next milestones
-1) Payments
-   - Stripe checkout + webhooks
-   - Order payment status updates
+1) Payments (deferred until LLC/Stripe setup)
+   - Keep mock payment flow in staging/prod for UX testing
+   - Stripe checkout + webhooks once account is ready
 2) File uploads
    - S3 bucket + pre-signed URLs
    - Design proof uploads + previews
@@ -66,7 +68,7 @@ Last updated: 2026-02-06
    - Logging/monitoring
 
 ## Suggested next tasks
-- Build the Stripe payment flow end-to-end (checkout + webhook + order update).
+- Finish mock payment UX polish, then swap to Stripe when ready.
 - Add S3 upload flow for design proofs (API + frontend upload UI).
 - Add an Account page and polish the authenticated navigation.
 - Add API integration tests for auth, orders, and design review.
@@ -91,5 +93,6 @@ Last updated: 2026-02-06
 - Staging cost optimization: NAT removed to reduce cost; Lambda runs in VPC for RDS access.
 - Lambda + HTTP API caveat: if Lambdas run in a VPC and need outbound internet, NAT costs return; avoid by limiting outbound or adding VPC endpoints. Consider RDS Proxy / Prisma Data Proxy for connection limits.
 - Lambda test deploy command: `npx cdk deploy -c stage=staging -c enableLambdaApi=true signalcraft-staging/staging-api-lambda`.
+- Mock payments toggle: `ALLOW_MOCK_PAYMENTS` (API) + `VITE_ALLOW_MOCK_PAYMENTS` (web).
 - Cost review checklist: NAT gateways, RDS (instances + snapshots + backups), CloudWatch log retention, ECR image retention, Secrets Manager secrets, VPC endpoints, CloudFront logs, unused Route53 health checks.
 

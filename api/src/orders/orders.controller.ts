@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   Get,
   Param,
   Patch,
@@ -9,10 +10,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { CognitoJwtGuard } from '../auth/guards/cognito-jwt.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import type { AuthUser } from '../auth/types/auth-user';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { UpdatePaymentStatusDto } from './dto/update-payment-status.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 
 @UseGuards(CognitoJwtGuard)
@@ -43,5 +47,21 @@ export class OrdersController {
     @Body() payload: UpdateOrderStatusDto,
   ) {
     return this.ordersService.updateStatus(orderId, payload);
+  }
+
+  @Patch(':orderId/payment')
+  updatePaymentStatus(
+    @Param('orderId') orderId: string,
+    @Body() payload: UpdatePaymentStatusDto,
+    @CurrentUser() user?: AuthUser,
+  ) {
+    const allowMockPayments =
+      (process.env.ALLOW_MOCK_PAYMENTS ?? '').toLowerCase() === 'true';
+    const userGroups = user?.groups ?? [];
+    const isAdmin = userGroups.includes('admin');
+    if (!allowMockPayments && !isAdmin) {
+      throw new ForbiddenException('Insufficient permissions');
+    }
+    return this.ordersService.updatePaymentStatus(orderId, payload);
   }
 }

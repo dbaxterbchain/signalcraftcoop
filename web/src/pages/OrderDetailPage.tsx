@@ -4,6 +4,10 @@ import {
   Button,
   Chip,
   Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Stack,
   TextField,
   Typography,
@@ -11,8 +15,15 @@ import {
 import Grid from '@mui/material/Grid';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { createDesignReview, getDesigns, getOrder } from '../api/client';
-import type { Design, Order } from '../api/types';
+import {
+  createDesign,
+  createDesignReview,
+  getDesigns,
+  getOrder,
+  updatePaymentStatus,
+} from '../api/client';
+import type { Design, DesignStatus, Order, PaymentStatus } from '../api/types';
+import useAuth from '../auth/useAuth';
 
 type ReviewState = Record<string, { comment: string; status: 'approved' | 'changes-requested' }>;
 
@@ -21,8 +32,26 @@ export default function OrderDetailPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [designs, setDesigns] = useState<Design[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [designError, setDesignError] = useState<string | null>(null);
   const [reviewState, setReviewState] = useState<ReviewState>({});
   const [submitting, setSubmitting] = useState<string | null>(null);
+  const [designSubmitting, setDesignSubmitting] = useState(false);
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [paymentUpdating, setPaymentUpdating] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [designForm, setDesignForm] = useState<{
+    previewUrl: string;
+    sourceUrl: string;
+    status: DesignStatus;
+  }>({
+    previewUrl: '',
+    sourceUrl: '',
+    status: 'in-review',
+  });
+  const { user } = useAuth();
+  const isAdmin = user?.groups?.includes('admin') ?? false;
+  const allowMockPayments = import.meta.env.VITE_ALLOW_MOCK_PAYMENTS === 'true';
+  const canMockPayments = allowMockPayments || isAdmin;
 
   const orderLabel = useMemo(
     () => order?.orderNumber ?? order?.id ?? orderId ?? 'Order',
@@ -89,6 +118,60 @@ export default function OrderDetailPage() {
     }
   };
 
+  const handleCreateDesign = async () => {
+    if (!orderId) {
+      return;
+    }
+    setDesignSubmitting(true);
+    setDesignError(null);
+    try {
+      const nextVersion =
+        designs.length > 0
+          ? Math.max(...designs.map((design) => design.version)) + 1
+          : 1;
+      await createDesign(orderId, {
+        version: nextVersion,
+        status: designForm.status,
+        previewUrl: designForm.previewUrl,
+        sourceUrl: designForm.sourceUrl || undefined,
+      });
+      const updated = await getDesigns(orderId);
+      setDesigns(updated);
+      setDesignForm((prev) => ({ ...prev, previewUrl: '', sourceUrl: '' }));
+    } catch (err) {
+      const statusCode = (err as Error & { status?: number }).status;
+      setDesignError(
+        statusCode === 403
+          ? 'Only admins can upload designs right now.'
+          : 'Unable to upload design.',
+      );
+    } finally {
+      setDesignSubmitting(false);
+    }
+  };
+
+  const handlePaymentUpdate = async (status: PaymentStatus) => {
+    if (!orderId) {
+      return;
+    }
+    setPaymentUpdating(true);
+    setPaymentError(null);
+    try {
+      const updated = await updatePaymentStatus(orderId, { status });
+      setOrder(updated);
+      setPaymentDialogOpen(false);
+    } catch (err) {
+      const statusCode = (err as Error & { status?: number }).status;
+      setPaymentError(
+        statusCode === 403
+          ? 'Payment updates are disabled for this environment.'
+          : 'Unable to update payment status.',
+      );
+    } finally {
+      setPaymentUpdating(false);
+    }
+  };
+
   return (
     <Box sx={{ py: { xs: 6, md: 10 } }}>
       <Container maxWidth="lg">
@@ -116,6 +199,54 @@ export default function OrderDetailPage() {
               <Typography variant="h4" sx={{ mb: 2 }}>
                 Design reviews
               </Typography>
+              {isAdmin && (
+                <Box
+                  sx={{
+                    p: 2,
+                    borderRadius: 2,
+                    border: '1px dashed #C5D6E5',
+                    backgroundColor: '#F8FBFF',
+                    mb: 2,
+                  }}
+                >
+                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                    Admin: upload a design proof
+                  </Typography>
+                  <Stack spacing={2}>
+                    <TextField
+                      label="Preview URL"
+                      placeholder="https://.../design-proof.png"
+                      value={designForm.previewUrl}
+                      onChange={(event) =>
+                        setDesignForm((prev) => ({ ...prev, previewUrl: event.target.value }))
+                      }
+                      fullWidth
+                    />
+                    <TextField
+                      label="Source URL (optional)"
+                      placeholder="https://.../design-source.psd"
+                      value={designForm.sourceUrl}
+                      onChange={(event) =>
+                        setDesignForm((prev) => ({ ...prev, sourceUrl: event.target.value }))
+                      }
+                      fullWidth
+                    />
+                    <Stack direction="row" spacing={2} alignItems="center">
+                      <Button
+                        variant="contained"
+                        onClick={handleCreateDesign}
+                        disabled={!designForm.previewUrl || designSubmitting}
+                      >
+                        Upload proof
+                      </Button>
+                      <Typography variant="caption" color="text.secondary">
+                        This creates a new design version for review.
+                      </Typography>
+                    </Stack>
+                    {designError && <Alert severity="info">{designError}</Alert>}
+                  </Stack>
+                </Box>
+              )}
               {designs.length === 0 ? (
                 <Typography variant="body2" color="text.secondary">
                   No designs uploaded yet.
@@ -214,6 +345,15 @@ export default function OrderDetailPage() {
                   <Typography variant="body2" color="text.secondary">
                     Total: {order.total ? `$${order.total.toFixed(2)}` : 'TBD'}
                   </Typography>
+                  {canMockPayments && (
+                    <Button
+                      variant="outlined"
+                      sx={{ mt: 2, alignSelf: 'flex-start' }}
+                      onClick={() => setPaymentDialogOpen(true)}
+                    >
+                      Simulate payment
+                    </Button>
+                  )}
                 </Stack>
               ) : (
                 <Typography variant="body2" color="text.secondary">
@@ -223,6 +363,36 @@ export default function OrderDetailPage() {
             </Box>
           </Grid>
         </Grid>
+        <Dialog open={paymentDialogOpen} onClose={() => setPaymentDialogOpen(false)}>
+          <DialogTitle>Simulate payment</DialogTitle>
+          <DialogContent>
+            <Typography variant="body2" color="text.secondary">
+              Mark this order as paid or failed to keep the flow testable until Stripe is ready.
+            </Typography>
+            {paymentError && (
+              <Alert severity="info" sx={{ mt: 2 }}>
+                {paymentError}
+              </Alert>
+            )}
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 2 }}>
+            <Button onClick={() => setPaymentDialogOpen(false)}>Cancel</Button>
+            <Button
+              variant="outlined"
+              onClick={() => handlePaymentUpdate('unpaid')}
+              disabled={paymentUpdating}
+            >
+              Mark failed
+            </Button>
+            <Button
+              variant="contained"
+              onClick={() => handlePaymentUpdate('paid')}
+              disabled={paymentUpdating}
+            >
+              Mark paid
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Container>
     </Box>
   );

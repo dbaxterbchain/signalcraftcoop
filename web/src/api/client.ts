@@ -2,12 +2,14 @@ import {
   getApiToken,
 } from '../auth/auth';
 import type {
+  CreateDesignPayload,
   CreateDesignReviewPayload,
   CreateOrderPayload,
   Design,
   DesignReview,
   Order,
   Product,
+  UpdatePaymentStatusPayload,
 } from './types';
 
 const baseUrl = (import.meta.env.VITE_API_URL as string) ?? 'http://localhost:3000';
@@ -71,12 +73,29 @@ export function getDesigns(orderId: string): Promise<Design[]> {
   return request<Design[]>(`/orders/${orderId}/designs`);
 }
 
+export function createDesign(orderId: string, payload: CreateDesignPayload): Promise<Design> {
+  return request<Design>(`/orders/${orderId}/designs`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
 export function createDesignReview(
   designId: string,
   payload: CreateDesignReviewPayload,
 ): Promise<DesignReview> {
   return request<DesignReview>(`/designs/${designId}/reviews`, {
     method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function updatePaymentStatus(
+  orderId: string,
+  payload: UpdatePaymentStatusPayload,
+): Promise<Order> {
+  return request<Order>(`/orders/${orderId}/payment`, {
+    method: 'PATCH',
     body: JSON.stringify(payload),
   });
 }

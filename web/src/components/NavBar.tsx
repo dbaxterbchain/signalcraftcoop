@@ -2,6 +2,7 @@ import {
   AppBar,
   Box,
   Button,
+  CircularProgress,
   Container,
   Drawer,
   IconButton,
@@ -21,7 +22,7 @@ import useAuth from '../auth/useAuth';
 export default function NavBar() {
   const [open, setOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   return (
     <AppBar
@@ -64,7 +65,15 @@ export default function NavBar() {
           <Stack direction="row" spacing={1} sx={{ ml: 2, display: { xs: 'none', md: 'flex' } }}>
             <Button variant="outlined">Contact</Button>
             <Button variant="contained">Start a custom order</Button>
-            {isAuthenticated ? (
+            {isLoading ? (
+              <Button
+                variant="text"
+                disabled
+                startIcon={<CircularProgress size={16} />}
+              >
+                Checking session
+              </Button>
+            ) : isAuthenticated ? (
               <>
                 <IconButton
                   onClick={(event) => setAnchorEl(event.currentTarget)}
@@ -125,7 +134,11 @@ export default function NavBar() {
             <Button variant="contained" onClick={() => setOpen(false)}>
               Start a custom order
             </Button>
-            {isAuthenticated ? (
+            {isLoading ? (
+              <Button disabled startIcon={<CircularProgress size={16} />}>
+                Checking session
+              </Button>
+            ) : isAuthenticated ? (
               <Button
                 onClick={() => {
                   setOpen(false);
