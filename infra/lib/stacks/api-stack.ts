@@ -6,6 +6,7 @@ import {
   aws_ecs as ecs,
   aws_ecs_patterns as ecsPatterns,
   aws_elasticloadbalancingv2 as elbv2,
+  aws_applicationautoscaling as appscaling,
   aws_logs as logs,
   aws_route53 as route53,
   aws_route53_targets as route53Targets,
@@ -45,10 +46,19 @@ export class ApiStack extends cdk.Stack {
       repositoryName: `signalcraft-api-${props.config.name}`,
       imageScanOnPush: true,
     });
+    repo.addLifecycleRule({
+      tagStatus: ecr.TagStatus.ANY,
+      maxImageCount: props.config.name === 'prod' ? 10 : 5,
+    });
 
     const logGroup = new logs.LogGroup(this, 'ApiLogs', {
-      retention: logs.RetentionDays.ONE_MONTH,
+      retention:
+        props.config.name === 'prod'
+          ? logs.RetentionDays.ONE_MONTH
+          : logs.RetentionDays.ONE_WEEK,
     });
+
+    const usePublicSubnets = props.config.name === 'staging';
 
     const service = new ecsPatterns.ApplicationLoadBalancedFargateService(
       this,
@@ -59,6 +69,10 @@ export class ApiStack extends cdk.Stack {
         memoryLimitMiB: props.config.name === 'prod' ? 1024 : 512,
         desiredCount: props.config.name === 'prod' ? 2 : 1,
         publicLoadBalancer: true,
+        assignPublicIp: usePublicSubnets ? true : undefined,
+        taskSubnets: usePublicSubnets
+          ? { subnetType: ec2.SubnetType.PUBLIC }
+          : undefined,
         taskImageOptions: {
           image: ecs.ContainerImage.fromEcrRepository(repo, imageTag),
           containerPort: 3000,
@@ -95,6 +109,34 @@ export class ApiStack extends cdk.Stack {
     service.targetGroup.configureHealthCheck({
       path: '/',
     });
+
+    if (props.config.name === 'staging') {
+      const scaling = service.service.autoScaleTaskCount({
+        minCapacity: 0,
+        maxCapacity: 1,
+      });
+
+      // Weekdays: scale up at 16:00 UTC (~8am PT), scale down at 02:00 UTC (~6pm PT)
+      scaling.scaleOnSchedule('ScaleUpWeekdays', {
+        schedule: appscaling.Schedule.cron({
+          minute: '0',
+          hour: '16',
+          weekDay: 'MON-FRI',
+        }),
+        minCapacity: 1,
+        maxCapacity: 1,
+      });
+
+      scaling.scaleOnSchedule('ScaleDownWeekdays', {
+        schedule: appscaling.Schedule.cron({
+          minute: '0',
+          hour: '2',
+          weekDay: 'MON-FRI',
+        }),
+        minCapacity: 0,
+        maxCapacity: 0,
+      });
+    }
 
     const zone = route53.HostedZone.fromHostedZoneAttributes(
       this,

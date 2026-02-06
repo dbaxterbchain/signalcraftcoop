@@ -1,3 +1,6 @@
+import {
+  getApiToken,
+} from '../auth/auth';
 import type {
   CreateDesignReviewPayload,
   CreateOrderPayload,
@@ -11,7 +14,7 @@ const baseUrl = (import.meta.env.VITE_API_URL as string) ?? 'http://localhost:30
 const envToken = import.meta.env.VITE_API_TOKEN as string | undefined;
 
 function getAuthToken() {
-  return envToken || undefined;
+  return envToken || getApiToken() || undefined;
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -33,7 +36,6 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(`${baseUrl}${path}`, {
     ...options,
     headers,
-    credentials: 'include',
   });
 
   if (!response.ok) {

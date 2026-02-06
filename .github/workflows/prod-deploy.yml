@@ -13,21 +13,6 @@ on:
         required: false
         type: string
         default: E3P0DZ7ELUJ88C
-      ecr_repo:
-        description: "Prod ECR repo (full URI, no tag)"
-        required: false
-        type: string
-        default: 089080661826.dkr.ecr.us-west-2.amazonaws.com/signalcraft-api-prod
-      ecs_cluster:
-        description: "Prod ECS cluster name"
-        required: false
-        type: string
-        default: prod-prod-api-ClusterEB0386A7-5BNpfdopDVj7
-      ecs_service:
-        description: "Prod ECS service name"
-        required: false
-        type: string
-        default: prod-prod-api-ApiService199661B5-OYyURQv3WIal
 
 env:
   AWS_REGION: us-west-2
@@ -73,51 +58,31 @@ jobs:
           aws s3 cp dist s3://${{ inputs.s3_bucket }} --recursive --exclude "*" --include "*.html" --content-type text/html --cache-control "no-cache"
           aws cloudfront create-invalidation --distribution-id ${{ inputs.cloudfront_distribution }} --paths "/*"
 
-      - name: Build + push API image
-        if: ${{ inputs.ecr_repo != '' }}
+      - name: Fetch RDS CA bundle
         run: |
           mkdir -p api/certs
           curl -fsSL https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem -o api/certs/rds-ca.pem
           test -s api/certs/rds-ca.pem
-          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin ${{ inputs.ecr_repo }}
-          docker build -t signalcraft-api:latest ./api
-          docker tag signalcraft-api:latest ${{ inputs.ecr_repo }}:latest
-          docker push ${{ inputs.ecr_repo }}:latest
 
-      - name: Run Prisma migrations (prod)
-        if: ${{ inputs.ecs_cluster != '' && inputs.ecs_service != '' }}
+      - name: Deploy Lambda API (prod)
+        working-directory: infra
         run: |
-          TASK_DEF_ARN=$(aws ecs describe-services --region $AWS_REGION \
-            --cluster ${{ inputs.ecs_cluster }} \
-            --services ${{ inputs.ecs_service }} \
-            --query 'services[0].taskDefinition' --output text)
-          SUBNETS=$(aws ecs describe-services --region $AWS_REGION \
-            --cluster ${{ inputs.ecs_cluster }} \
-            --services ${{ inputs.ecs_service }} \
-            --query 'services[0].networkConfiguration.awsvpcConfiguration.subnets' --output text | tr '\t' ',')
-          SECURITY_GROUPS=$(aws ecs describe-services --region $AWS_REGION \
-            --cluster ${{ inputs.ecs_cluster }} \
-            --services ${{ inputs.ecs_service }} \
-            --query 'services[0].networkConfiguration.awsvpcConfiguration.securityGroups' --output text | tr '\t' ',')
-          TASK_ARN=$(aws ecs run-task --region $AWS_REGION \
-            --cluster ${{ inputs.ecs_cluster }} \
-            --launch-type FARGATE \
-            --task-definition $TASK_DEF_ARN \
-            --network-configuration "awsvpcConfiguration={subnets=[$SUBNETS],securityGroups=[$SECURITY_GROUPS],assignPublicIp=DISABLED}" \
-            --overrides '{"containerOverrides":[{"name":"web","command":["npx","prisma","migrate","deploy"]}]}' \
-            --query 'tasks[0].taskArn' --output text)
-          aws ecs wait tasks-stopped --region $AWS_REGION --cluster ${{ inputs.ecs_cluster }} --tasks $TASK_ARN
-          EXIT_CODE=$(aws ecs describe-tasks --region $AWS_REGION --cluster ${{ inputs.ecs_cluster }} --tasks $TASK_ARN --query 'tasks[0].containers[0].exitCode' --output text)
-          if [ "$EXIT_CODE" != "0" ]; then
-            echo "Prisma migrate failed with exit code $EXIT_CODE"
-            aws ecs describe-tasks --region $AWS_REGION --cluster ${{ inputs.ecs_cluster }} --tasks $TASK_ARN
+          npm ci
+          npx cdk deploy -c stage=prod -c enableLambdaApi=true signalcraft-prod/prod-api-lambda --require-approval never
+
+      - name: Run Prisma migrations (Lambda)
+        run: |
+          LAMBDA_NAME=$(aws cloudformation describe-stacks --region $AWS_REGION \
+            --stack-name prod-prod-api-lambda \
+            --query "Stacks[0].Outputs[?OutputKey=='MigrationsLambdaName'].OutputValue" --output text)
+          INVOKE_RESULT=$(aws lambda invoke --region $AWS_REGION \
+            --function-name $LAMBDA_NAME \
+            --payload '{}' \
+            --cli-binary-format raw-in-base64-out \
+            /tmp/migrate.json \
+            --query 'FunctionError' --output text)
+          cat /tmp/migrate.json
+          if [ "$INVOKE_RESULT" != "None" ] && [ "$INVOKE_RESULT" != "null" ] && [ "$INVOKE_RESULT" != "" ]; then
+            echo "Prisma migrate failed (Lambda error: $INVOKE_RESULT)"
             exit 1
           fi
-
-      - name: Force ECS deploy
-        if: ${{ inputs.ecs_cluster != '' && inputs.ecs_service != '' }}
-        run: |
-          aws ecs update-service --region $AWS_REGION \
-            --cluster ${{ inputs.ecs_cluster }} \
-            --service ${{ inputs.ecs_service }} \
-            --force-new-deployment

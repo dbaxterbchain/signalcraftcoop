@@ -7,11 +7,6 @@ on:
 
 env:
   AWS_REGION: us-west-2
-  ECR_REPO: 089080661826.dkr.ecr.us-west-2.amazonaws.com/signalcraft-api-staging
-  ECS_CLUSTER: staging-staging-api-ClusterEB0386A7-NkWLQpu3ozv2
-  ECS_SERVICE: staging-staging-api-ApiService199661B5-t4SvSuJt1hSE
-  ECS_SUBNETS: subnet-021a3e46812d3bd8b,subnet-0de5fb29fac5226bc
-  ECS_SECURITY_GROUPS: sg-0b7f441cc27c9fc21
   S3_BUCKET: staging-staging-web-webbucket12880f5b-qqnt6ea0jfcd
   CLOUDFRONT_DIST: E1WNT7EZ9TRQSG
 
@@ -54,37 +49,25 @@ jobs:
           curl -fsSL https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem -o api/certs/rds-ca.pem
           test -s api/certs/rds-ca.pem
 
-      - name: Build + push API image
+      - name: Deploy Lambda API (staging)
+        working-directory: infra
         run: |
-          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
-          docker build -t signalcraft-api:latest ./api
-          docker tag signalcraft-api:latest $ECR_REPO:latest
-          docker push $ECR_REPO:latest
+          npm ci
+          npx cdk deploy -c stage=staging -c enableLambdaApi=true signalcraft-staging/staging-api-lambda --require-approval never
 
-      - name: Run Prisma migrations (staging)
+      - name: Run Prisma migrations (Lambda)
         run: |
-          TASK_DEF_ARN=$(aws ecs describe-services --region $AWS_REGION \
-            --cluster $ECS_CLUSTER \
-            --services $ECS_SERVICE \
-            --query 'services[0].taskDefinition' --output text)
-          TASK_ARN=$(aws ecs run-task --region $AWS_REGION \
-            --cluster $ECS_CLUSTER \
-            --launch-type FARGATE \
-            --task-definition $TASK_DEF_ARN \
-            --network-configuration "awsvpcConfiguration={subnets=[$ECS_SUBNETS],securityGroups=[$ECS_SECURITY_GROUPS],assignPublicIp=DISABLED}" \
-            --overrides '{"containerOverrides":[{"name":"web","command":["npx","prisma","migrate","deploy"]}]}' \
-            --query 'tasks[0].taskArn' --output text)
-          aws ecs wait tasks-stopped --region $AWS_REGION --cluster $ECS_CLUSTER --tasks $TASK_ARN
-          EXIT_CODE=$(aws ecs describe-tasks --region $AWS_REGION --cluster $ECS_CLUSTER --tasks $TASK_ARN --query 'tasks[0].containers[0].exitCode' --output text)
-          if [ "$EXIT_CODE" != "0" ]; then
-            echo "Prisma migrate failed with exit code $EXIT_CODE"
-            aws ecs describe-tasks --region $AWS_REGION --cluster $ECS_CLUSTER --tasks $TASK_ARN
+          LAMBDA_NAME=$(aws cloudformation describe-stacks --region $AWS_REGION \
+            --stack-name staging-staging-api-lambda \
+            --query "Stacks[0].Outputs[?OutputKey=='MigrationsLambdaName'].OutputValue" --output text)
+          INVOKE_RESULT=$(aws lambda invoke --region $AWS_REGION \
+            --function-name $LAMBDA_NAME \
+            --payload '{}' \
+            --cli-binary-format raw-in-base64-out \
+            /tmp/migrate.json \
+            --query 'FunctionError' --output text)
+          cat /tmp/migrate.json
+          if [ "$INVOKE_RESULT" != "None" ] && [ "$INVOKE_RESULT" != "null" ] && [ "$INVOKE_RESULT" != "" ]; then
+            echo "Prisma migrate failed (Lambda error: $INVOKE_RESULT)"
             exit 1
           fi
-
-      - name: Force ECS deploy
-        run: |
-          aws ecs update-service --region $AWS_REGION \
-            --cluster $ECS_CLUSTER \
-            --service $ECS_SERVICE \
-            --force-new-deployment
