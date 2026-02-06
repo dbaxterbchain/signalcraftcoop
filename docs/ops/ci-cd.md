@@ -1,30 +1,28 @@
 # CI/CD (Staging)
 
-Staging deploys run from GitHub Actions using OIDC (no long‑lived AWS keys).
+Staging deploys run from GitHub Actions using OIDC (no long-lived AWS keys).
 
 ## Workflow
 - File: `.github/workflows/staging-deploy.yml`
 - Trigger: pushes to `staging` branch (manual dispatch also supported)
 - Steps:
   - Build + deploy web to S3 + CloudFront invalidation
-  - Build + push API image to ECR
-  - Run Prisma migrations via ECS one-off task
-  - Force ECS service deployment
+  - Deploy Lambda HTTP API stack via CDK (`enableLambdaApi=true`)
 
 ## OIDC Role
 - Role ARN: `arn:aws:iam::089080661826:role/signalcraft-staging-github-actions`
 - Trust: `repo:dbaxterbchain/signalcraftcoop:ref:refs/heads/staging`
-- Permissions: scoped to staging ECR, S3, CloudFront, ECS
+- Permissions: scoped to staging S3, CloudFront, CloudFormation/CDK, and Route53/ACM (for API custom domain)
 
 ## Prod (manual)
 - Workflow: `.github/workflows/prod-deploy.yml` (manual dispatch only)
 - Role ARN: `arn:aws:iam::089080661826:role/signalcraft-prod-github-actions`
 - Trust: `repo:dbaxterbchain/signalcraftcoop:ref:refs/heads/main`
-- Inputs: bucket, distribution, ECR repo, ECS cluster/service
+- Inputs: bucket, distribution
 
 ## Notes
 - No `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` secrets are required.
 - If the workflow fails to assume role, confirm:
   - The branch is `staging`
   - GitHub Actions permissions include `id-token: write`
-- Prisma migrations are currently run manually via ECS one-off task (see infra/README.md).
+- Prisma migrations are run manually from within the VPC (no public DB access). We will add a dedicated migration Lambda later if needed.

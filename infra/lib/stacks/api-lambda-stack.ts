@@ -3,9 +3,12 @@ import {
   aws_apigatewayv2 as apigw,
   aws_apigatewayv2_authorizers as apigwAuthorizers,
   aws_apigatewayv2_integrations as apigwIntegrations,
+  aws_certificatemanager as acm,
   aws_ec2 as ec2,
   aws_lambda as lambda,
   aws_logs as logs,
+  aws_route53 as route53,
+  aws_route53_targets as route53targets,
   aws_secretsmanager as secretsmanager,
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
@@ -183,8 +186,69 @@ export class ApiLambdaStack extends cdk.Stack {
       integration,
     });
 
+    const hostedZone = route53.HostedZone.fromHostedZoneAttributes(
+      this,
+      'HostedZone',
+      {
+        zoneName: props.config.zoneName,
+        hostedZoneId: props.config.zoneId,
+      },
+    );
+
+    const apiCertificate = new acm.Certificate(this, 'ApiDomainCertificate', {
+      domainName: props.config.apiDomain,
+      validation: acm.CertificateValidation.fromDns(hostedZone),
+    });
+
+    const apiDomainName = new apigw.DomainName(this, 'ApiDomainName', {
+      domainName: props.config.apiDomain,
+      certificate: apiCertificate,
+    });
+
+    const defaultStage =
+      httpApi.defaultStage ??
+      new apigw.HttpStage(this, 'DefaultStage', {
+        httpApi,
+        stageName: '$default',
+        autoDeploy: true,
+      });
+
+    new apigw.ApiMapping(this, 'ApiDomainMapping', {
+      api: httpApi,
+      domainName: apiDomainName,
+      stage: defaultStage,
+    });
+
+    const apiRecordName = props.config.apiDomain.endsWith(
+      `.${props.config.zoneName}`,
+    )
+      ? props.config.apiDomain.replace(`.${props.config.zoneName}`, '')
+      : props.config.apiDomain;
+
+    new route53.ARecord(this, 'ApiDomainAliasA', {
+      zone: hostedZone,
+      recordName: apiRecordName,
+      target: route53.RecordTarget.fromAlias(
+        new route53targets.ApiGatewayv2DomainProperties(
+          apiDomainName.regionalDomainName,
+          apiDomainName.regionalHostedZoneId,
+        ),
+      ),
+    });
+
+    new route53.AaaaRecord(this, 'ApiDomainAliasAAAA', {
+      zone: hostedZone,
+      recordName: apiRecordName,
+      target: route53.RecordTarget.fromAlias(
+        new route53targets.ApiGatewayv2DomainProperties(
+          apiDomainName.regionalDomainName,
+          apiDomainName.regionalHostedZoneId,
+        ),
+      ),
+    });
+
     new cdk.CfnOutput(this, 'ApiLambdaUrl', {
-      value: httpApi.apiEndpoint,
+      value: `https://${props.config.apiDomain}`,
     });
   }
 }
