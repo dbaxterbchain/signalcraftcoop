@@ -12,12 +12,12 @@ Core stack
 - Payments: Stripe
 - Data: Postgres (AWS RDS)
 - Assets: S3 (design files, proofs, mockups)
-- Infra: Docker, ECS Fargate, CloudFront, S3
+- Infra: Lambda + API Gateway, CloudFront, S3
 - Observability: CloudWatch, Sentry
 
 High-level components
 - Web app (React) served via S3 + CloudFront
-- API service (Nest) deployed as Docker containers on ECS Fargate
+- API service (Nest) deployed as Lambda behind API Gateway HTTP API
 - Postgres for users, orders, products, and design reviews
 - S3 for file storage (artwork, mockups, proofs)
 - Cognito for authentication and user pools

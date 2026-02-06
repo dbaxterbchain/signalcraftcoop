@@ -1,7 +1,7 @@
 # Infrastructure (Draft)
 
 - Frontend hosted on S3 + CloudFront
-- API on ECS Fargate (Docker)
+- API on Lambda (Node/Nest) behind API Gateway HTTP API
 - Postgres on RDS
 - Prisma ORM + migrations for persistence
 - S3 for file storage
