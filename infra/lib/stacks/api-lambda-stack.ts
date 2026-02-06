@@ -51,6 +51,13 @@ export class ApiLambdaStack extends cdk.Stack {
           : logs.RetentionDays.ONE_WEEK,
     });
 
+    const migrationLogGroup = new logs.LogGroup(this, 'ApiMigrationLogs', {
+      retention:
+        props.config.name === 'prod'
+          ? logs.RetentionDays.ONE_MONTH
+          : logs.RetentionDays.ONE_WEEK,
+    });
+
     const apiLambda = new lambda.Function(this, 'ApiLambda', {
       code: lambda.Code.fromAsset(repoRoot, {
         assetHashType: cdk.AssetHashType.OUTPUT,
@@ -102,6 +109,61 @@ export class ApiLambdaStack extends cdk.Stack {
         COGNITO_DOMAIN: props.cognito.domain,
         COGNITO_LOGOUT_URI: `https://${props.config.webDomain}/`,
         WEB_ORIGIN: webOrigin.valueAsString,
+        DB_SSLMODE: 'verify-full',
+        DB_SSL_REJECT_UNAUTHORIZED: 'true',
+        DB_SSL_CA_PATH: '/var/task/certs/rds-ca.pem',
+        PGSSLROOTCERT: '/var/task/certs/rds-ca.pem',
+        NODE_EXTRA_CA_CERTS: '/var/task/certs/rds-ca.pem',
+        DB_HOST: dbHost,
+        DB_PORT: dbPort,
+        DB_NAME: dbName,
+        DB_USER: dbUser,
+        DB_PASSWORD: dbPassword,
+        AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
+      },
+    });
+
+    const migrationLambda = new lambda.Function(this, 'ApiMigrationLambda', {
+      code: lambda.Code.fromAsset(repoRoot, {
+        assetHashType: cdk.AssetHashType.OUTPUT,
+        bundling: {
+          image: lambda.Runtime.NODEJS_20_X.bundlingImage,
+          command: [
+            'bash',
+            '-c',
+            [
+              'mkdir -p /tmp/npm-cache',
+              'chmod -R 777 /tmp/npm-cache',
+              'rm -rf /tmp/migrate',
+              'mkdir -p /tmp/migrate',
+              'cp /asset-input/api/src/migrate.js /tmp/migrate/index.js',
+              "printf '{\"name\":\"signalcraft-migrations\",\"private\":true,\"dependencies\":{\"prisma\":\"^7.3.0\",\"@prisma/client\":\"^7.3.0\"}}' > /tmp/migrate/package.json",
+              'cp -R /asset-input/api/prisma /tmp/migrate/prisma',
+              'cp /asset-input/api/prisma.config.ts /tmp/migrate/prisma.config.ts',
+              'cd /tmp/migrate',
+              'NPM_CONFIG_CACHE=/tmp/npm-cache npm install --omit=dev',
+              'mkdir -p /asset-output',
+              'cp /tmp/migrate/index.js /asset-output/index.js',
+              'cp -R /tmp/migrate/node_modules /asset-output/node_modules',
+              'cp -R /tmp/migrate/prisma /asset-output/prisma',
+              'cp /tmp/migrate/prisma.config.ts /asset-output/prisma.config.ts',
+              'mkdir -p /asset-output/certs',
+              'cp /asset-input/api/certs/rds-ca.pem /asset-output/certs/rds-ca.pem',
+              'find /asset-output/node_modules -type l -delete',
+              'rm -rf /asset-output/node_modules/.bin',
+            ].join(' && '),
+          ],
+        },
+      }),
+      handler: 'index.handler',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      memorySize: props.config.name === 'prod' ? 1024 : 768,
+      timeout: cdk.Duration.minutes(5),
+      vpc: props.vpc,
+      vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
+      logGroup: migrationLogGroup,
+      environment: {
+        NODE_ENV: props.config.name,
         DB_SSLMODE: 'verify-full',
         DB_SSL_REJECT_UNAUTHORIZED: 'true',
         DB_SSL_CA_PATH: '/var/task/certs/rds-ca.pem',
@@ -249,6 +311,10 @@ export class ApiLambdaStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, 'ApiLambdaUrl', {
       value: `https://${props.config.apiDomain}`,
+    });
+
+    new cdk.CfnOutput(this, 'MigrationsLambdaName', {
+      value: migrationLambda.functionName,
     });
   }
 }

@@ -8,11 +8,12 @@ Staging deploys run from GitHub Actions using OIDC (no long-lived AWS keys).
 - Steps:
   - Build + deploy web to S3 + CloudFront invalidation
   - Deploy Lambda HTTP API stack via CDK (`enableLambdaApi=true`)
+  - Invoke the migration Lambda to run `prisma migrate deploy`
 
 ## OIDC Role
 - Role ARN: `arn:aws:iam::089080661826:role/signalcraft-staging-github-actions`
 - Trust: `repo:dbaxterbchain/signalcraftcoop:ref:refs/heads/staging`
-- Permissions: scoped to staging S3, CloudFront, CloudFormation/CDK, and Route53/ACM (for API custom domain)
+- Permissions: scoped to staging S3, CloudFront, CloudFormation/CDK, Route53/ACM, and Lambda invoke
 
 ## Prod (manual)
 - Workflow: `.github/workflows/prod-deploy.yml` (manual dispatch only)
@@ -25,4 +26,4 @@ Staging deploys run from GitHub Actions using OIDC (no long-lived AWS keys).
 - If the workflow fails to assume role, confirm:
   - The branch is `staging`
   - GitHub Actions permissions include `id-token: write`
-- Prisma migrations are run manually from within the VPC (no public DB access). We will add a dedicated migration Lambda later if needed.
+- Prisma migrations are executed via the migration Lambda inside the VPC.

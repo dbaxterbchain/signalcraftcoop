@@ -54,3 +54,20 @@ jobs:
         run: |
           npm ci
           npx cdk deploy -c stage=staging -c enableLambdaApi=true signalcraft-staging/staging-api-lambda --require-approval never
+
+      - name: Run Prisma migrations (Lambda)
+        run: |
+          LAMBDA_NAME=$(aws cloudformation describe-stacks --region $AWS_REGION \
+            --stack-name staging-staging-api-lambda \
+            --query "Stacks[0].Outputs[?OutputKey=='MigrationsLambdaName'].OutputValue" --output text)
+          INVOKE_RESULT=$(aws lambda invoke --region $AWS_REGION \
+            --function-name $LAMBDA_NAME \
+            --payload '{}' \
+            --cli-binary-format raw-in-base64-out \
+            /tmp/migrate.json \
+            --query 'FunctionError' --output text)
+          cat /tmp/migrate.json
+          if [ "$INVOKE_RESULT" != "None" ] && [ "$INVOKE_RESULT" != "null" ] && [ "$INVOKE_RESULT" != "" ]; then
+            echo "Prisma migrate failed (Lambda error: $INVOKE_RESULT)"
+            exit 1
+          fi
