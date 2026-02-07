@@ -45,11 +45,15 @@ export type Order = {
   orderNumber?: string;
   type: string;
   status: string;
-  paymentStatus?: string;
+  paymentStatus?: PaymentStatus;
   items?: OrderItemInput[];
   total?: number;
   createdAt?: string;
 };
+
+export type PaymentStatus = 'unpaid' | 'authorized' | 'paid' | 'refunded' | 'disputed';
+
+export type DesignStatus = 'draft' | 'in-review' | 'changes-requested' | 'approved';
 
 export type Design = {
   id: string;
@@ -65,6 +69,17 @@ export type CreateDesignReviewPayload = {
   status: 'approved' | 'changes-requested';
   comment?: string;
   attachmentUrl?: string;
+};
+
+export type CreateDesignPayload = {
+  version: number;
+  status: DesignStatus;
+  previewUrl: string;
+  sourceUrl?: string;
+};
+
+export type UpdatePaymentStatusPayload = {
+  status: PaymentStatus;
 };
 
 export type DesignReview = {

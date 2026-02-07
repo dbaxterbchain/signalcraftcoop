@@ -20,6 +20,7 @@ Staging deploys run from GitHub Actions using OIDC (no long-lived AWS keys).
 - Role ARN: `arn:aws:iam::089080661826:role/signalcraft-prod-github-actions`
 - Trust: `repo:dbaxterbchain/signalcraftcoop:ref:refs/heads/main`
 - Inputs: bucket, distribution
+ - Steps mirror staging (web deploy + CDK Lambda deploy + migration Lambda invoke)
 
 ## Notes
 - No `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` secrets are required.
@@ -27,3 +28,4 @@ Staging deploys run from GitHub Actions using OIDC (no long-lived AWS keys).
   - The branch is `staging`
   - GitHub Actions permissions include `id-token: write`
 - Prisma migrations are executed via the migration Lambda inside the VPC.
+- CDK bootstrap access required: SSM `GetParameter` on `/cdk-bootstrap/hnb659fds/version`, S3 access to `cdk-hnb659fds-assets-*`, and `iam:PassRole` for `cdk-hnb659fds-*`.

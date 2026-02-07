@@ -2,6 +2,7 @@ import {
   AppBar,
   Box,
   Button,
+  CircularProgress,
   Container,
   Drawer,
   IconButton,
@@ -21,7 +22,7 @@ import useAuth from '../auth/useAuth';
 export default function NavBar() {
   const [open, setOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   return (
     <AppBar
@@ -54,17 +55,26 @@ export default function NavBar() {
             <Button component={RouterLink} to="/" sx={{ color: 'text.primary' }}>
               Home
             </Button>
-            <Button component={RouterLink} to="/products" sx={{ color: 'text.primary' }}>
-              Products
-            </Button>
-            <Button component={RouterLink} to="/custom-order" sx={{ color: 'text.primary' }}>
-              Custom Orders
+            <Button component={RouterLink} to="/contact" sx={{ color: 'text.primary' }}>
+              Contact
             </Button>
           </Stack>
           <Stack direction="row" spacing={1} sx={{ ml: 2, display: { xs: 'none', md: 'flex' } }}>
-            <Button variant="outlined">Contact</Button>
-            <Button variant="contained">Start a custom order</Button>
-            {isAuthenticated ? (
+            <Button component={RouterLink} to="/products" variant="outlined">
+              Products
+            </Button>
+            <Button component={RouterLink} to="/custom-order" variant="contained">
+              Start a custom order
+            </Button>
+            {isLoading ? (
+              <Button
+                variant="text"
+                disabled
+                startIcon={<CircularProgress size={16} />}
+              >
+                Checking session
+              </Button>
+            ) : isAuthenticated ? (
               <>
                 <IconButton
                   onClick={(event) => setAnchorEl(event.currentTarget)}
@@ -113,19 +123,30 @@ export default function NavBar() {
             <Button component={RouterLink} to="/" onClick={() => setOpen(false)}>
               Home
             </Button>
-            <Button component={RouterLink} to="/products" onClick={() => setOpen(false)}>
-              Products
-            </Button>
-            <Button component={RouterLink} to="/custom-order" onClick={() => setOpen(false)}>
-              Custom Orders
-            </Button>
-            <Button variant="outlined" onClick={() => setOpen(false)}>
+            <Button component={RouterLink} to="/contact" onClick={() => setOpen(false)}>
               Contact
             </Button>
-            <Button variant="contained" onClick={() => setOpen(false)}>
+            <Button
+              component={RouterLink}
+              to="/products"
+              variant="outlined"
+              onClick={() => setOpen(false)}
+            >
+              Products
+            </Button>
+            <Button
+              component={RouterLink}
+              to="/custom-order"
+              variant="contained"
+              onClick={() => setOpen(false)}
+            >
               Start a custom order
             </Button>
-            {isAuthenticated ? (
+            {isLoading ? (
+              <Button disabled startIcon={<CircularProgress size={16} />}>
+                Checking session
+              </Button>
+            ) : isAuthenticated ? (
               <Button
                 onClick={() => {
                   setOpen(false);

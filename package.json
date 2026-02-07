@@ -1,0 +1,10 @@
+{
+  "name": "signalcraftcoop",
+  "private": true,
+  "scripts": {
+    "verify:api": "npm --prefix api run verify:local",
+    "verify:web": "npm --prefix web run verify:local",
+    "verify:local": "npm run verify:api && npm run verify:web",
+    "verify:infra": "npm --prefix infra run build && npm --prefix infra run synth -- -c stage=staging -c enableLambdaApi=true"
+  }
+}

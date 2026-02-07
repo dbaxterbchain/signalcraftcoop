@@ -12,7 +12,10 @@
     "typecheck": "tsc -p tsconfig.json --noEmit --incremental false",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "verify": "npm run lint && npm run typecheck && npm run test:cov",
+    "verify:local": "npm run lint && npm run typecheck && npm run test:cov",
     "test": "vitest run --passWithNoTests",
+    "test:cov": "vitest run --coverage",
     "test:watch": "vitest",
     "deploy:staging": "npm run build:staging && aws s3 sync dist s3://staging-staging-web-webbucket12880f5b-qqnt6ea0jfcd --delete --exclude \"*.js\" --exclude \"*.css\" --exclude \"*.map\" --exclude \"*.svg\" --exclude \"*.html\" && aws s3 cp dist s3://staging-staging-web-webbucket12880f5b-qqnt6ea0jfcd --recursive --exclude \"*\" --include \"*.js\" --content-type application/javascript --cache-control \"public,max-age=31536000,immutable\" && aws s3 cp dist s3://staging-staging-web-webbucket12880f5b-qqnt6ea0jfcd --recursive --exclude \"*\" --include \"*.css\" --content-type text/css --cache-control \"public,max-age=31536000,immutable\" && aws s3 cp dist s3://staging-staging-web-webbucket12880f5b-qqnt6ea0jfcd --recursive --exclude \"*\" --include \"*.map\" --content-type application/json --cache-control \"public,max-age=31536000,immutable\" && aws s3 cp dist s3://staging-staging-web-webbucket12880f5b-qqnt6ea0jfcd --recursive --exclude \"*\" --include \"*.svg\" --content-type image/svg+xml --cache-control \"public,max-age=31536000,immutable\" && aws s3 cp dist s3://staging-staging-web-webbucket12880f5b-qqnt6ea0jfcd --recursive --exclude \"*\" --include \"*.html\" --content-type text/html --cache-control \"no-cache\" && aws cloudfront create-invalidation --distribution-id E1WNT7EZ9TRQSG --paths \"/*\"",
     "deploy:prod": "node -e \"console.error('Set prod S3 bucket + CloudFront distribution IDs before deploying.'); process.exit(1)\""
@@ -24,6 +27,7 @@
     "@vitejs/plugin-react": "^5.1.2",
     "@types/react": "^19.0.4",
     "@types/react-dom": "^19.0.2",
+    "@vitest/coverage-v8": "^3.0.6",
     "eslint": "^9.19.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",

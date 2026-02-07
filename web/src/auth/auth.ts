@@ -5,10 +5,12 @@ const ID_TOKEN_KEY = 'auth_id_token';
 const EXPIRES_AT_KEY = 'auth_expires_at';
 
 type AuthUser = {
+  id?: string;
   sub?: string;
   email?: string;
   name?: string;
   username?: string;
+  groups?: string[];
 };
 
 function base64UrlEncode(input: Uint8Array) {

@@ -15,6 +15,7 @@ export default function App() {
         <Route index element={<HomePage />} />
         <Route path="products" element={<ProductsPage />} />
         <Route path="custom-order" element={<CustomOrderPage />} />
+        <Route path="contact" element={<CustomOrderPage />} />
         <Route path="auth/callback" element={<AuthCallbackPage />} />
         <Route
           path="orders"
