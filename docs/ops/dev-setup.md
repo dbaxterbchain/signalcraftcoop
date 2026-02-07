@@ -61,7 +61,35 @@ npm install
 npm run dev
 ```
 
-## 6) Configure Cognito Hosted UI (frontend)
+## 6) Local verification (pre-push)
+
+Before pushing to staging, run a local verify that covers linting, typechecking, and tests with coverage. This will fail if there are no tests.
+
+From repo root:
+
+```bash
+npm run verify:local
+```
+
+Per project (if you want to run independently):
+
+```bash
+cd api
+npm run verify:local
+
+cd web
+npm run verify:local
+```
+
+Optional infra check (synth only):
+
+```bash
+cd infra
+npm run build
+npm run synth -- -c stage=staging -c enableLambdaApi=true
+```
+
+## 7) Configure Cognito Hosted UI (frontend)
 
 Update `web/.env` with your Cognito values:
 

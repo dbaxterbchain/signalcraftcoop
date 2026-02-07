@@ -69,8 +69,12 @@ export default function OrdersPage() {
               Start a custom order or browse standard products to get started.
             </Typography>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center">
-              <Button variant="contained">Start a custom order</Button>
-              <Button variant="outlined">Browse products</Button>
+              <Button component={RouterLink} to="/custom-order" variant="contained">
+                Start a custom order
+              </Button>
+              <Button component={RouterLink} to="/products" variant="outlined">
+                Browse products
+              </Button>
             </Stack>
           </Box>
         ) : (

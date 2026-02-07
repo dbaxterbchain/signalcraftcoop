@@ -8,6 +8,7 @@ import {
   Typography,
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
+import { Link as RouterLink } from 'react-router-dom';
 import HeroIllustration from '../components/HeroIllustration';
 
 const features = [
@@ -87,6 +88,8 @@ export default function HomePage() {
                 </Typography>
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                   <Button
+                    component={RouterLink}
+                    to="/custom-order"
                     variant="contained"
                     size="large"
                     sx={{
@@ -98,6 +101,8 @@ export default function HomePage() {
                     Start a custom order
                   </Button>
                   <Button
+                    component={RouterLink}
+                    to="/products"
                     variant="outlined"
                     size="large"
                     sx={{ borderColor: '#EAF4FF', color: '#EAF4FF' }}
@@ -223,7 +228,9 @@ export default function HomePage() {
                 Tap-enabled stands and keychains route customers back to your shop,
                 your menu, or your reorder link instantly.
               </Typography>
-              <Button variant="contained">Discuss your concept</Button>
+              <Button component={RouterLink} to="/custom-order" variant="contained">
+                Discuss your concept
+              </Button>
             </Box>
           </Grid>
         </Grid>
@@ -239,10 +246,10 @@ export default function HomePage() {
             NFC experience to keep customers coming back.
           </Typography>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center">
-            <Button variant="contained" size="large">
+            <Button component={RouterLink} to="/custom-order" variant="contained" size="large">
               Start a custom order
             </Button>
-            <Button variant="outlined" size="large">
+            <Button component={RouterLink} to="/products" variant="outlined" size="large">
               Browse the store
             </Button>
           </Stack>

@@ -1,6 +1,7 @@
 import { Alert, Box, Button, Chip, Container, Stack, Typography } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import { useEffect, useState } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 import { getProducts } from '../api/client';
 import type { Product } from '../api/types';
 
@@ -120,7 +121,9 @@ export default function ProductsPage() {
               </Typography>
             </Grid>
             <Grid size={{ xs: 12, md: 4 }} sx={{ textAlign: { xs: 'left', md: 'right' } }}>
-              <Button variant="contained">Start a custom order</Button>
+              <Button component={RouterLink} to="/custom-order" variant="contained">
+                Start a custom order
+              </Button>
             </Grid>
           </Grid>
         </Box>
