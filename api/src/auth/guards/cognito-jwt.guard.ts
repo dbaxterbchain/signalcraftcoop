@@ -40,16 +40,43 @@ export class CognitoJwtGuard extends AuthGuard('cognito-jwt') {
 }
 
 function buildUserFromClaims(claims: Record<string, unknown>): AuthUser {
+  const groups = parseGroups(claims['cognito:groups']);
   return {
     sub: typeof claims.sub === 'string' ? claims.sub : 'unknown',
     email: typeof claims.email === 'string' ? claims.email : undefined,
     username:
       typeof claims['cognito:username'] === 'string'
         ? claims['cognito:username']
-        : undefined,
-    groups: Array.isArray(claims['cognito:groups'])
-      ? (claims['cognito:groups'] as string[])
-      : undefined,
+        : typeof claims.username === 'string'
+          ? claims.username
+          : undefined,
+    groups,
     raw: claims,
   };
+}
+
+function parseGroups(value: unknown): string[] | undefined {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === 'string');
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return undefined;
+    }
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(
+            (item): item is string => typeof item === 'string',
+          );
+        }
+      } catch {
+        return undefined;
+      }
+    }
+    return trimmed.split(',').map((entry) => entry.trim()).filter(Boolean);
+  }
+  return undefined;
 }
