@@ -238,11 +238,6 @@ export class ApiLambdaStack extends cdk.Stack {
       integration,
       authorizer: jwtAuthorizer,
     });
-    httpApi.addRoutes({
-      path: '/{proxy+}',
-      methods: [apigw.HttpMethod.OPTIONS],
-      integration,
-    });
 
     const hostedZone = route53.HostedZone.fromHostedZoneAttributes(
       this,
