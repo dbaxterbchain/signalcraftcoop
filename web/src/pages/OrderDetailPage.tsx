@@ -2,30 +2,54 @@ import {
   Alert,
   Box,
   Button,
+  Checkbox,
   Chip,
   Container,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControlLabel,
+  MenuItem,
   Stack,
   TextField,
   Typography,
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import {
   createDesign,
   createDesignReview,
+  createOrderEvent,
+  createUploadUrl,
   getDesigns,
   getOrder,
+  updateOrderStatus,
+  updateOrderShipping,
   updatePaymentStatus,
 } from '../api/client';
-import type { Design, DesignStatus, Order, PaymentStatus } from '../api/types';
+import type {
+  Design,
+  DesignStatus,
+  Order,
+  OrderStatus,
+  PaymentStatus,
+} from '../api/types';
 import useAuth from '../auth/useAuth';
 
 type ReviewState = Record<string, { comment: string; status: 'approved' | 'changes-requested' }>;
+const orderStatusOptions: { value: OrderStatus; label: string }[] = [
+  { value: 'submitted', label: 'Submitted' },
+  { value: 'designing', label: 'Designing' },
+  { value: 'review', label: 'Review' },
+  { value: 'approved', label: 'Approved' },
+  { value: 'production', label: 'Production' },
+  { value: 'shipping', label: 'Shipping' },
+  { value: 'complete', label: 'Complete' },
+  { value: 'on-hold', label: 'On hold' },
+  { value: 'canceled', label: 'Canceled' },
+];
 
 export default function OrderDetailPage() {
   const { orderId } = useParams();
@@ -36,9 +60,15 @@ export default function OrderDetailPage() {
   const [reviewState, setReviewState] = useState<ReviewState>({});
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [designSubmitting, setDesignSubmitting] = useState(false);
+  const [designUploading, setDesignUploading] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [paymentUpdating, setPaymentUpdating] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [orderStatus, setOrderStatus] = useState<OrderStatus>('submitted');
+  const [orderStatusUpdating, setOrderStatusUpdating] = useState(false);
+  const [orderStatusError, setOrderStatusError] = useState<string | null>(null);
+  const [previewFile, setPreviewFile] = useState<File | null>(null);
+  const [sourceFile, setSourceFile] = useState<File | null>(null);
   const [designForm, setDesignForm] = useState<{
     previewUrl: string;
     sourceUrl: string;
@@ -48,8 +78,29 @@ export default function OrderDetailPage() {
     sourceUrl: '',
     status: 'in-review',
   });
+  const [shippingForm, setShippingForm] = useState({
+    shippingCarrier: '',
+    shippingService: '',
+    trackingNumber: '',
+    trackingUrl: '',
+    shippedAt: '',
+    deliveredAt: '',
+  });
+  const [shippingUpdating, setShippingUpdating] = useState(false);
+  const [shippingError, setShippingError] = useState<string | null>(null);
+  const [eventForm, setEventForm] = useState({
+    type: 'note',
+    title: '',
+    description: '',
+    isCustomerVisible: true,
+  });
+  const [eventSubmitting, setEventSubmitting] = useState(false);
+  const [eventError, setEventError] = useState<string | null>(null);
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const isAdmin = user?.groups?.includes('admin') ?? false;
+  const isImpersonating = isAdmin && searchParams.get('view') === 'customer';
+  const showAdminControls = isAdmin && !isImpersonating;
   const allowMockPayments = import.meta.env.VITE_ALLOW_MOCK_PAYMENTS === 'true';
   const canMockPayments = allowMockPayments || isAdmin;
 
@@ -57,6 +108,15 @@ export default function OrderDetailPage() {
     () => order?.orderNumber ?? order?.id ?? orderId ?? 'Order',
     [order, orderId],
   );
+  const visibleEvents = useMemo(() => {
+    if (!order?.events) {
+      return [];
+    }
+    if (isImpersonating) {
+      return order.events.filter((event) => event.isCustomerVisible !== false);
+    }
+    return order.events;
+  }, [isImpersonating, order?.events]);
 
   useEffect(() => {
     if (!orderId) {
@@ -87,6 +147,26 @@ export default function OrderDetailPage() {
       active = false;
     };
   }, [orderId]);
+
+  useEffect(() => {
+    if (order?.status) {
+      setOrderStatus(order.status);
+    }
+  }, [order?.status]);
+
+  useEffect(() => {
+    if (!order) {
+      return;
+    }
+    setShippingForm({
+      shippingCarrier: order.shippingCarrier ?? '',
+      shippingService: order.shippingService ?? '',
+      trackingNumber: order.trackingNumber ?? '',
+      trackingUrl: order.trackingUrl ?? '',
+      shippedAt: order.shippedAt ?? '',
+      deliveredAt: order.deliveredAt ?? '',
+    });
+  }, [order]);
 
   const handleCommentChange = (designId: string, value: string) => {
     setReviewState((prev) => ({
@@ -122,6 +202,10 @@ export default function OrderDetailPage() {
     if (!orderId) {
       return;
     }
+    if (!designForm.previewUrl && !previewFile) {
+      setDesignError('Add a preview URL or upload a preview file.');
+      return;
+    }
     setDesignSubmitting(true);
     setDesignError(null);
     try {
@@ -129,24 +213,158 @@ export default function OrderDetailPage() {
         designs.length > 0
           ? Math.max(...designs.map((design) => design.version)) + 1
           : 1;
+      let previewUrl = designForm.previewUrl;
+      let sourceUrl = designForm.sourceUrl;
+
+      if (previewFile) {
+        setDesignUploading(true);
+        const { uploadUrl, fileUrl } = await createUploadUrl({
+          orderId,
+          category: 'preview',
+          fileName: previewFile.name,
+          contentType: previewFile.type || 'application/octet-stream',
+        });
+        const response = await fetch(uploadUrl, {
+          method: 'PUT',
+          body: previewFile,
+          headers: {
+            'Content-Type': previewFile.type || 'application/octet-stream',
+          },
+        });
+        if (!response.ok) {
+          throw new Error('Preview upload failed.');
+        }
+        previewUrl = fileUrl;
+      }
+
+      if (sourceFile) {
+        setDesignUploading(true);
+        const { uploadUrl, fileUrl } = await createUploadUrl({
+          orderId,
+          category: 'source',
+          fileName: sourceFile.name,
+          contentType: sourceFile.type || 'application/octet-stream',
+        });
+        const response = await fetch(uploadUrl, {
+          method: 'PUT',
+          body: sourceFile,
+          headers: {
+            'Content-Type': sourceFile.type || 'application/octet-stream',
+          },
+        });
+        if (!response.ok) {
+          throw new Error('Source upload failed.');
+        }
+        sourceUrl = fileUrl;
+      }
+
       await createDesign(orderId, {
         version: nextVersion,
         status: designForm.status,
-        previewUrl: designForm.previewUrl,
-        sourceUrl: designForm.sourceUrl || undefined,
+        previewUrl,
+        sourceUrl: sourceUrl || undefined,
       });
       const updated = await getDesigns(orderId);
       setDesigns(updated);
       setDesignForm((prev) => ({ ...prev, previewUrl: '', sourceUrl: '' }));
+      setPreviewFile(null);
+      setSourceFile(null);
     } catch (err) {
       const statusCode = (err as Error & { status?: number }).status;
       setDesignError(
         statusCode === 403
           ? 'Only admins can upload designs right now.'
-          : 'Unable to upload design.',
+          : (err as Error).message || 'Unable to upload design.',
       );
     } finally {
       setDesignSubmitting(false);
+      setDesignUploading(false);
+    }
+  };
+
+  const handleStatusUpdate = async () => {
+    if (!orderId) {
+      return;
+    }
+    setOrderStatusUpdating(true);
+    setOrderStatusError(null);
+    try {
+      const updated = await updateOrderStatus(orderId, { status: orderStatus });
+      setOrder(updated);
+    } catch (err) {
+      const statusCode = (err as Error & { status?: number }).status;
+      setOrderStatusError(
+        statusCode === 403
+          ? 'Only admins can update order status.'
+          : 'Unable to update order status.',
+      );
+    } finally {
+      setOrderStatusUpdating(false);
+    }
+  };
+
+  const handleShippingUpdate = async () => {
+    if (!orderId) {
+      return;
+    }
+    setShippingUpdating(true);
+    setShippingError(null);
+    try {
+      const updated = await updateOrderShipping(orderId, {
+        shippingCarrier: shippingForm.shippingCarrier || undefined,
+        shippingService: shippingForm.shippingService || undefined,
+        trackingNumber: shippingForm.trackingNumber || undefined,
+        trackingUrl: shippingForm.trackingUrl || undefined,
+        shippedAt: shippingForm.shippedAt || undefined,
+        deliveredAt: shippingForm.deliveredAt || undefined,
+      });
+      setOrder(updated);
+    } catch (err) {
+      const statusCode = (err as Error & { status?: number }).status;
+      setShippingError(
+        statusCode === 403
+          ? 'Only admins can update shipping details.'
+          : 'Unable to update shipping details.',
+      );
+    } finally {
+      setShippingUpdating(false);
+    }
+  };
+
+  const handleAddEvent = async () => {
+    if (!orderId) {
+      return;
+    }
+    if (!eventForm.title.trim()) {
+      setEventError('Add a title for the update.');
+      return;
+    }
+    setEventSubmitting(true);
+    setEventError(null);
+    try {
+      await createOrderEvent(orderId, {
+        type: eventForm.type,
+        title: eventForm.title.trim(),
+        description: eventForm.description.trim() || undefined,
+        isCustomerVisible: eventForm.isCustomerVisible,
+      });
+      const updated = await getOrder(orderId);
+      setOrder(updated);
+      setEventForm({
+        type: 'note',
+        title: '',
+        description: '',
+        isCustomerVisible: true,
+      });
+    } catch (err) {
+      const statusCode = (err as Error & { status?: number }).status;
+      setEventError(
+        statusCode === 403
+          ? 'Only admins can add updates.'
+          : 'Unable to add an update.',
+      );
+    } finally {
+      setEventSubmitting(false);
     }
   };
 
@@ -183,6 +401,30 @@ export default function OrderDetailPage() {
               Type: {order.type} - Status: {order.status}
             </Typography>
           )}
+          {isAdmin && (
+            <Stack direction="row" spacing={2} alignItems="center">
+              {isImpersonating ? (
+                <Button
+                  variant="outlined"
+                  onClick={() => setSearchParams({})}
+                >
+                  Return to admin view
+                </Button>
+              ) : (
+                <Button
+                  variant="outlined"
+                  onClick={() => setSearchParams({ view: 'customer' })}
+                >
+                  View as customer
+                </Button>
+              )}
+            </Stack>
+          )}
+          {isImpersonating && (
+            <Alert severity="info">
+              Viewing as customer. Admin actions are hidden.
+            </Alert>
+          )}
           {error && <Alert severity="info">{error}</Alert>}
         </Stack>
 
@@ -199,7 +441,7 @@ export default function OrderDetailPage() {
               <Typography variant="h4" sx={{ mb: 2 }}>
                 Design reviews
               </Typography>
-              {isAdmin && (
+              {showAdminControls && (
                 <Box
                   sx={{
                     p: 2,
@@ -213,6 +455,27 @@ export default function OrderDetailPage() {
                     Admin: upload a design proof
                   </Typography>
                   <Stack spacing={2}>
+                    <Stack spacing={1}>
+                      <Typography variant="caption" color="text.secondary">
+                        Preview proof
+                      </Typography>
+                      <Button variant="outlined" component="label">
+                        {previewFile ? 'Change preview file' : 'Select preview file'}
+                        <input
+                          type="file"
+                          hidden
+                          accept="image/*"
+                          onChange={(event) =>
+                            setPreviewFile(event.target.files?.[0] ?? null)
+                          }
+                        />
+                      </Button>
+                      {previewFile && (
+                        <Typography variant="caption" color="text.secondary">
+                          Selected: {previewFile.name}
+                        </Typography>
+                      )}
+                    </Stack>
                     <TextField
                       label="Preview URL"
                       placeholder="https://.../design-proof.png"
@@ -222,6 +485,26 @@ export default function OrderDetailPage() {
                       }
                       fullWidth
                     />
+                    <Stack spacing={1}>
+                      <Typography variant="caption" color="text.secondary">
+                        Source file (optional)
+                      </Typography>
+                      <Button variant="outlined" component="label">
+                        {sourceFile ? 'Change source file' : 'Select source file'}
+                        <input
+                          type="file"
+                          hidden
+                          onChange={(event) =>
+                            setSourceFile(event.target.files?.[0] ?? null)
+                          }
+                        />
+                      </Button>
+                      {sourceFile && (
+                        <Typography variant="caption" color="text.secondary">
+                          Selected: {sourceFile.name}
+                        </Typography>
+                      )}
+                    </Stack>
                     <TextField
                       label="Source URL (optional)"
                       placeholder="https://.../design-source.psd"
@@ -235,9 +518,13 @@ export default function OrderDetailPage() {
                       <Button
                         variant="contained"
                         onClick={handleCreateDesign}
-                        disabled={!designForm.previewUrl || designSubmitting}
+                        disabled={
+                          (!designForm.previewUrl && !previewFile) ||
+                          designSubmitting ||
+                          designUploading
+                        }
                       >
-                        Upload proof
+                        {designUploading ? 'Uploading...' : 'Upload proof'}
                       </Button>
                       <Typography variant="caption" color="text.secondary">
                         This creates a new design version for review.
@@ -345,6 +632,150 @@ export default function OrderDetailPage() {
                   <Typography variant="body2" color="text.secondary">
                     Total: {order.total ? `$${order.total.toFixed(2)}` : 'TBD'}
                   </Typography>
+                  {(order.trackingNumber || order.trackingUrl) && (
+                    <Typography variant="body2" color="text.secondary">
+                      Tracking: {order.trackingNumber ?? 'Available'}
+                    </Typography>
+                  )}
+                  {order.shippedAt && (
+                    <Typography variant="body2" color="text.secondary">
+                      Shipped: {new Date(order.shippedAt).toLocaleDateString()}
+                    </Typography>
+                  )}
+                  {order.deliveredAt && (
+                    <Typography variant="body2" color="text.secondary">
+                      Delivered: {new Date(order.deliveredAt).toLocaleDateString()}
+                    </Typography>
+                  )}
+                  {order.trackingUrl && (
+                    <Button
+                      component="a"
+                      href={order.trackingUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      variant="text"
+                      sx={{ alignSelf: 'flex-start' }}
+                    >
+                      View tracking
+                    </Button>
+                  )}
+                  {showAdminControls && (
+                    <Stack spacing={1} sx={{ mt: 2 }}>
+                      <TextField
+                        select
+                        label="Order status"
+                        value={orderStatus}
+                        onChange={(event) =>
+                          setOrderStatus(event.target.value as OrderStatus)
+                        }
+                      >
+                        {orderStatusOptions.map((option) => (
+                          <MenuItem key={option.value} value={option.value}>
+                            {option.label}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                      <Button
+                        variant="outlined"
+                        onClick={handleStatusUpdate}
+                        disabled={orderStatusUpdating || orderStatus === order.status}
+                        sx={{ alignSelf: 'flex-start' }}
+                      >
+                        {orderStatusUpdating ? 'Updating...' : 'Update status'}
+                      </Button>
+                        {orderStatusError && (
+                          <Alert severity="info">{orderStatusError}</Alert>
+                        )}
+                      <Box
+                        sx={{
+                          mt: 2,
+                          p: 2,
+                          borderRadius: 2,
+                          border: '1px dashed #C5D6E5',
+                          backgroundColor: '#F8FBFF',
+                        }}
+                      >
+                        <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                          Shipping details
+                        </Typography>
+                        <Stack spacing={2}>
+                          <TextField
+                            label="Carrier"
+                            value={shippingForm.shippingCarrier}
+                            onChange={(event) =>
+                              setShippingForm((prev) => ({
+                                ...prev,
+                                shippingCarrier: event.target.value,
+                              }))
+                            }
+                          />
+                          <TextField
+                            label="Service"
+                            value={shippingForm.shippingService}
+                            onChange={(event) =>
+                              setShippingForm((prev) => ({
+                                ...prev,
+                                shippingService: event.target.value,
+                              }))
+                            }
+                          />
+                          <TextField
+                            label="Tracking number"
+                            value={shippingForm.trackingNumber}
+                            onChange={(event) =>
+                              setShippingForm((prev) => ({
+                                ...prev,
+                                trackingNumber: event.target.value,
+                              }))
+                            }
+                          />
+                          <TextField
+                            label="Tracking URL"
+                            value={shippingForm.trackingUrl}
+                            onChange={(event) =>
+                              setShippingForm((prev) => ({
+                                ...prev,
+                                trackingUrl: event.target.value,
+                              }))
+                            }
+                          />
+                          <TextField
+                            label="Shipped at (ISO)"
+                            placeholder="2026-02-07T00:00:00Z"
+                            value={shippingForm.shippedAt}
+                            onChange={(event) =>
+                              setShippingForm((prev) => ({
+                                ...prev,
+                                shippedAt: event.target.value,
+                              }))
+                            }
+                          />
+                          <TextField
+                            label="Delivered at (ISO)"
+                            placeholder="2026-02-10T00:00:00Z"
+                            value={shippingForm.deliveredAt}
+                            onChange={(event) =>
+                              setShippingForm((prev) => ({
+                                ...prev,
+                                deliveredAt: event.target.value,
+                              }))
+                            }
+                          />
+                          <Button
+                            variant="outlined"
+                            onClick={handleShippingUpdate}
+                            disabled={shippingUpdating}
+                            sx={{ alignSelf: 'flex-start' }}
+                          >
+                            {shippingUpdating ? 'Updating...' : 'Update shipping'}
+                          </Button>
+                          {shippingError && (
+                            <Alert severity="info">{shippingError}</Alert>
+                          )}
+                        </Stack>
+                      </Box>
+                    </Stack>
+                  )}
                   {canMockPayments && (
                     <Button
                       variant="outlined"
@@ -363,6 +794,122 @@ export default function OrderDetailPage() {
             </Box>
           </Grid>
         </Grid>
+        <Box
+          sx={{
+            mt: 4,
+            p: 3,
+            borderRadius: 3,
+            border: '1px solid #C5D6E5',
+            backgroundColor: '#FFFFFF',
+          }}
+        >
+          <Typography variant="h4" sx={{ mb: 2 }}>
+            Order updates
+          </Typography>
+          {showAdminControls && (
+            <Box
+              sx={{
+                p: 2,
+                borderRadius: 2,
+                border: '1px dashed #C5D6E5',
+                backgroundColor: '#F8FBFF',
+                mb: 3,
+              }}
+            >
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                Add an update
+              </Typography>
+              <Stack spacing={2}>
+                <TextField
+                  label="Type"
+                  value={eventForm.type}
+                  onChange={(event) =>
+                    setEventForm((prev) => ({ ...prev, type: event.target.value }))
+                  }
+                />
+                <TextField
+                  label="Title"
+                  value={eventForm.title}
+                  onChange={(event) =>
+                    setEventForm((prev) => ({ ...prev, title: event.target.value }))
+                  }
+                />
+                <TextField
+                  label="Description"
+                  value={eventForm.description}
+                  multiline
+                  minRows={2}
+                  onChange={(event) =>
+                    setEventForm((prev) => ({
+                      ...prev,
+                      description: event.target.value,
+                    }))
+                  }
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={eventForm.isCustomerVisible}
+                      onChange={(event) =>
+                        setEventForm((prev) => ({
+                          ...prev,
+                          isCustomerVisible: event.target.checked,
+                        }))
+                      }
+                    />
+                  }
+                  label="Visible to customer"
+                />
+                <Button
+                  variant="outlined"
+                  onClick={handleAddEvent}
+                  disabled={eventSubmitting}
+                  sx={{ alignSelf: 'flex-start' }}
+                >
+                  {eventSubmitting ? 'Saving...' : 'Add update'}
+                </Button>
+                {eventError && <Alert severity="info">{eventError}</Alert>}
+              </Stack>
+            </Box>
+          )}
+          {visibleEvents.length > 0 ? (
+            <Stack spacing={2}>
+              {visibleEvents.map((event) => (
+                <Box
+                  key={event.id}
+                  sx={{
+                    p: 2,
+                    borderRadius: 2,
+                    border: '1px solid #E0E7EF',
+                    backgroundColor: '#F4F8FB',
+                  }}
+                >
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Typography variant="subtitle1">{event.title}</Typography>
+                    {showAdminControls && event.isCustomerVisible === false && (
+                      <Chip label="Internal" size="small" />
+                    )}
+                  </Stack>
+                  {event.description && (
+                    <Typography variant="body2" color="text.secondary">
+                      {event.description}
+                    </Typography>
+                  )}
+                  <Typography variant="caption" color="text.secondary">
+                    {event.createdAt
+                      ? new Date(event.createdAt).toLocaleString()
+                      : 'Just now'}
+                    {event.createdBy ? ` - ${event.createdBy}` : ''}
+                  </Typography>
+                </Box>
+              ))}
+            </Stack>
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              No updates yet.
+            </Typography>
+          )}
+        </Box>
         <Dialog open={paymentDialogOpen} onClose={() => setPaymentDialogOpen(false)}>
           <DialogTitle>Simulate payment</DialogTitle>
           <DialogContent>

@@ -12,7 +12,7 @@ export default defineConfig({
       reporter: ['text', 'html', 'lcov'],
       reportsDirectory: './coverage',
       include: ['src/api/**/*.ts', 'src/auth/auth.ts'],
-      exclude: ['**/src/test/**', '**/*.d.ts'],
+      exclude: ['**/src/test/**', '**/*.d.ts', '**/src/api/types.ts'],
       thresholds: {
         lines: 70,
         functions: 60,

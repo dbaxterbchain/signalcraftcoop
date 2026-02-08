@@ -2,6 +2,7 @@ import { Type } from 'class-transformer';
 import {
   IsInt,
   IsOptional,
+  IsObject,
   IsPositive,
   IsString,
   ValidateNested,
@@ -37,4 +38,8 @@ export class OrderItemDto {
   @IsOptional()
   @IsString()
   designId?: string;
+
+  @IsOptional()
+  @IsObject()
+  metadata?: Record<string, unknown>;
 }

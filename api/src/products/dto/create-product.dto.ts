@@ -1,12 +1,35 @@
 import {
   IsBoolean,
+  IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
   Min,
   MinLength,
+  ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+
+export class ProductImageDto {
+  @IsString()
+  @IsNotEmpty()
+  url: string;
+
+  @IsOptional()
+  @IsBoolean()
+  @Type(() => Boolean)
+  isMain?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Type(() => Number)
+  sortOrder?: number;
+
+  @IsOptional()
+  @IsString()
+  altText?: string;
+}
 
 export class CreateProductDto {
   @IsString()
@@ -30,7 +53,18 @@ export class CreateProductDto {
   @IsString()
   category?: string;
 
+  @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
-  allowsNfc: boolean;
+  allowsNfc?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @Type(() => Boolean)
+  allowsLogoUpload?: boolean;
+
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => ProductImageDto)
+  images?: ProductImageDto[];
 }

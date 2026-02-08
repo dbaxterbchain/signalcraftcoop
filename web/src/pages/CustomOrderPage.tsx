@@ -11,6 +11,7 @@ import {
 import Grid from '@mui/material/Grid';
 import type { ChangeEvent } from 'react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createOrder } from '../api/client';
 
 export default function CustomOrderPage() {
@@ -29,6 +30,7 @@ export default function CustomOrderPage() {
   const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(
     null,
   );
+  const navigate = useNavigate();
 
   const handleChange =
     (field: keyof typeof form) => (event: ChangeEvent<HTMLInputElement>) => {
@@ -40,7 +42,7 @@ export default function CustomOrderPage() {
     setSubmitting(true);
     try {
       const quantity = Number.parseInt(form.quantity || '1', 10);
-      await createOrder({
+      const order = await createOrder({
         type: 'custom',
         items: [
           {
@@ -48,12 +50,16 @@ export default function CustomOrderPage() {
             quantity: Number.isNaN(quantity) ? 1 : Math.max(1, quantity),
             unitPrice: 1,
             nfcConfig: form.nfcLink ? { url: form.nfcLink } : undefined,
+            metadata: {
+              businessName: form.businessName || undefined,
+              contactName: form.contactName || undefined,
+              email: form.email || undefined,
+              phone: form.phone || undefined,
+              deadline: form.deadline || undefined,
+              notes: form.notes || undefined,
+            },
           },
         ],
-      });
-      setStatus({
-        type: 'success',
-        message: 'Request submitted. We will follow up with design questions soon.',
       });
       setForm({
         businessName: '',
@@ -66,6 +72,7 @@ export default function CustomOrderPage() {
         deadline: '',
         notes: '',
       });
+      navigate('/orders', { state: { newOrderId: order.id } });
     } catch (error) {
       const statusCode = (error as Error & { status?: number }).status;
       setStatus({
@@ -84,7 +91,7 @@ export default function CustomOrderPage() {
     <Box sx={{ py: { xs: 6, md: 10 } }}>
       <Container maxWidth="lg">
         <Stack spacing={2} sx={{ mb: 6 }}>
-          <Chip label="Custom order intake" sx={{ width: 'fit-content', bgcolor: '#EAF4FF' }} />
+          <Chip label="Custom order request" sx={{ width: 'fit-content', bgcolor: '#EAF4FF' }} />
           <Typography variant="h2">Tell us what you want to build</Typography>
           <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 640 }}>
             Share your product, quantities, and how you want the NFC experience to work.

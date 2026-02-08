@@ -18,11 +18,15 @@ import { useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { loginWithHostedUI, logout } from '../auth/auth';
 import useAuth from '../auth/useAuth';
+import { useCart } from '../cart/CartContext';
 
 export default function NavBar() {
   const [open, setOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
+  const isAdmin = user?.groups?.includes('admin') ?? false;
+  const { items } = useCart();
+  const cartCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <AppBar
@@ -63,6 +67,9 @@ export default function NavBar() {
             <Button component={RouterLink} to="/products" variant="outlined">
               Products
             </Button>
+            <Button component={RouterLink} to="/cart" variant="outlined">
+              Cart{cartCount > 0 ? ` (${cartCount})` : ''}
+            </Button>
             <Button component={RouterLink} to="/custom-order" variant="contained">
               Start a custom order
             </Button>
@@ -88,13 +95,18 @@ export default function NavBar() {
                   open={Boolean(anchorEl)}
                   onClose={() => setAnchorEl(null)}
                 >
-                  <MenuItem component={RouterLink} to="/orders" onClick={() => setAnchorEl(null)}>
-                    Orders
+                <MenuItem component={RouterLink} to="/orders" onClick={() => setAnchorEl(null)}>
+                  Orders
+                </MenuItem>
+                {isAdmin && (
+                  <MenuItem component={RouterLink} to="/admin" onClick={() => setAnchorEl(null)}>
+                    Admin
                   </MenuItem>
-                  <MenuItem disabled>Account</MenuItem>
-                  <MenuItem
-                    onClick={() => {
-                      setAnchorEl(null);
+                )}
+                <MenuItem disabled>Account</MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    setAnchorEl(null);
                       void logout();
                     }}
                   >
@@ -136,12 +148,30 @@ export default function NavBar() {
             </Button>
             <Button
               component={RouterLink}
+              to="/cart"
+              variant="outlined"
+              onClick={() => setOpen(false)}
+            >
+              Cart{cartCount > 0 ? ` (${cartCount})` : ''}
+            </Button>
+            <Button
+              component={RouterLink}
               to="/custom-order"
               variant="contained"
               onClick={() => setOpen(false)}
             >
               Start a custom order
             </Button>
+            {isAuthenticated && isAdmin && (
+              <Button
+                component={RouterLink}
+                to="/admin"
+                variant="outlined"
+                onClick={() => setOpen(false)}
+              >
+                Admin
+              </Button>
+            )}
             {isLoading ? (
               <Button disabled startIcon={<CircularProgress size={16} />}>
                 Checking session

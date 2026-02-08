@@ -1,6 +1,6 @@
 # Project Progress
 
-Last updated: 2026-02-06
+Last updated: 2026-02-07
 
 ## Current status
 - Core web + API scaffolding in place with Cognito Hosted UI auth.
@@ -30,7 +30,9 @@ Last updated: 2026-02-06
 - Migration Lambda added and wired into CI for staging + prod.
 - GitHub Actions OIDC roles updated for CDK bootstrap access (SSM + assets bucket + PassRole).
 - Mock payment controls added for staging testing (paid/failed updates).
-- Admin-only design upload UI added for order detail reviews.
+- Admin-only design upload UI added for order detail reviews (file picker + S3 presign).
+- Admin order status updates wired in Order Detail.
+- S3 uploads bucket + presigned URL API in Lambda for design proof uploads.
 
 ## Completed
 - React + MUI web app with landing, products, custom order, orders, and order detail pages.
@@ -43,36 +45,28 @@ Last updated: 2026-02-06
 - RDS credentials in Secrets Manager, injected into Lambda env.
 - API Docker image build/push flow documented (staging + prod).
 - Prod web hosting deployed (S3 + CloudFront + Route53).
+- Infra cleanup: replaced deprecated CDK constructs (`DnsValidatedCertificate` -> `Certificate`, `S3Origin` -> `S3BucketOrigin`).
 
 ## In progress
-- Orders/design review workflow wiring to real data and uploads.
 - Finalizing auth UX and error handling (post-login loading state).
 - CI/CD hardening (prod deploy workflow permissions + docs).
-- Infra cleanup: replace deprecated CDK constructs (`DnsValidatedCertificate` -> `Certificate`, `S3Origin` -> `S3BucketOrigin`).
+- Orders/design review workflow polish (loading states, approval UX).
 
 ## Next milestones
 1) Payments (deferred until LLC/Stripe setup)
    - Keep mock payment flow in staging/prod for UX testing
    - Stripe checkout + webhooks once account is ready
-2) File uploads
-   - S3 bucket + pre-signed URLs
-   - Design proof uploads + previews
-3) Hosting
+2) Hosting
    - Finalize prod deploy runbook + permissions
-4) Admin operations
-   - Order status management
-   - Design upload + review cycle
-5) Production readiness
+3) Production readiness
    - CI/CD pipeline
    - Secrets management
    - Logging/monitoring
 
 ## Suggested next tasks
 - Finish mock payment UX polish, then swap to Stripe when ready.
-- Add S3 upload flow for design proofs (API + frontend upload UI).
 - Add an Account page and polish the authenticated navigation.
 - Add API integration tests for auth, orders, and design review.
-- Infra cleanup: replace deprecated CDK constructs (`DnsValidatedCertificate` -> `Certificate`, `S3Origin` -> `S3BucketOrigin`).
 
 ## Notes / lessons learned
 - (Legacy ECS) Tasks fail with `CannotPullContainerError` until the image is pushed to ECR.

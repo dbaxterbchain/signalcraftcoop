@@ -4,7 +4,12 @@ info:
   version: 0.4.0
   description: API for custom orders, store orders, and design review workflows.
 servers:
-  - url: https://api.example.com
+  - url: http://localhost:3000
+    description: Local development
+  - url: https://staging.api.signalcraftcoop.com
+    description: Staging
+  - url: https://api.signalcraftcoop.com
+    description: Production
 security:
   - bearerAuth: []
 tags:
@@ -14,6 +19,7 @@ tags:
   - name: Products
   - name: Checkout
   - name: Admin
+  - name: Contact
 paths:
   /auth/me:
     get:
@@ -253,6 +259,25 @@ paths:
           description: Invalid request
         '401':
           description: Unauthorized
+  /contact:
+    post:
+      tags: [Contact]
+      summary: Submit a contact message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateContactMessage'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactMessage'
+        '400':
+          description: Invalid request
   /admin/orders:
     get:
       tags: [Admin]
@@ -308,6 +333,64 @@ paths:
           description: Forbidden
         '404':
           description: Not found
+  /admin/orders/{orderId}/shipping:
+    patch:
+      tags: [Admin]
+      summary: Update order shipping info (admin)
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOrderShipping'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not found
+  /admin/orders/{orderId}/events:
+    post:
+      tags: [Admin]
+      summary: Add order event (admin)
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderEvent'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderEvent'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not found
   /admin/orders/{orderId}/designs:
     get:
       tags: [Admin]
@@ -355,6 +438,52 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Design'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not found
+  /admin/messages:
+    get:
+      tags: [Admin]
+      summary: List contact messages (admin)
+      responses:
+        '200':
+          description: Messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContactMessage'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  /admin/messages/{messageId}:
+    patch:
+      tags: [Admin]
+      summary: Update contact message (admin)
+      parameters:
+        - in: path
+          name: messageId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateContactMessage'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactMessage'
         '401':
           description: Unauthorized
         '403':
@@ -464,7 +593,7 @@ components:
       enum: [custom, store]
     OrderStatus:
       type: string
-      enum: [intake, designing, review, approved, production, shipping, complete, on-hold, canceled]
+      enum: [submitted, designing, review, approved, production, shipping, complete, on-hold, canceled]
     PaymentStatus:
       type: string
       enum: [unpaid, authorized, paid, refunded, disputed]
@@ -546,6 +675,9 @@ components:
           minimum: 0
         nfcConfig:
           $ref: '#/components/schemas/NFCConfig'
+        metadata:
+          type: object
+          additionalProperties: true
         designId:
           type: string
           format: uuid
@@ -564,6 +696,18 @@ components:
           $ref: '#/components/schemas/OrderStatus'
         paymentStatus:
           $ref: '#/components/schemas/PaymentStatus'
+        paymentRequiredAt:
+          type: string
+          format: date-time
+        paidAt:
+          type: string
+          format: date-time
+        paymentProvider:
+          type: string
+        paymentReference:
+          type: string
+        paymentMethod:
+          type: string
         items:
           type: array
           items:
@@ -580,6 +724,55 @@ components:
         total:
           type: number
           minimum: 0
+        shippingAddress:
+          $ref: '#/components/schemas/Address'
+        billingAddress:
+          $ref: '#/components/schemas/Address'
+        shippingCarrier:
+          type: string
+        shippingService:
+          type: string
+        trackingNumber:
+          type: string
+        trackingUrl:
+          type: string
+          format: uri
+        shippedAt:
+          type: string
+          format: date-time
+        deliveredAt:
+          type: string
+          format: date-time
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderEvent'
+        createdAt:
+          type: string
+          format: date-time
+    OrderEvent:
+      type: object
+      required: [id, orderId, type, title, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        orderId:
+          type: string
+          format: uuid
+        type:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        isCustomerVisible:
+          type: boolean
+        createdBy:
+          type: string
         createdAt:
           type: string
           format: date-time
@@ -603,11 +796,33 @@ components:
           type: string
         allowsNfc:
           type: boolean
+        allowsLogoUpload:
+          type: boolean
         active:
           type: boolean
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductImage'
         createdAt:
           type: string
           format: date-time
+    ProductImage:
+      type: object
+      required: [url]
+      properties:
+        id:
+          type: string
+          format: uuid
+        url:
+          type: string
+          format: uri
+        isMain:
+          type: boolean
+        sortOrder:
+          type: integer
+        altText:
+          type: string
     Design:
       type: object
       required: [id, orderId, version, status, previewUrl, createdAt]
@@ -652,6 +867,29 @@ components:
         createdAt:
           type: string
           format: date-time
+    ContactMessage:
+      type: object
+      required: [id, name, email, message, status, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        message:
+          type: string
+        status:
+          type: string
+          enum: [new, in-progress, resolved, archived]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
     CreateOrder:
       type: object
       required: [type, items]
@@ -672,6 +910,38 @@ components:
       properties:
         status:
           $ref: '#/components/schemas/OrderStatus'
+    UpdateOrderShipping:
+      type: object
+      properties:
+        shippingCarrier:
+          type: string
+        shippingService:
+          type: string
+        trackingNumber:
+          type: string
+        trackingUrl:
+          type: string
+          format: uri
+        shippedAt:
+          type: string
+          format: date-time
+        deliveredAt:
+          type: string
+          format: date-time
+    CreateOrderEvent:
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        isCustomerVisible:
+          type: boolean
     CreateDesign:
       type: object
       required: [version, status, previewUrl]
@@ -698,6 +968,24 @@ components:
         attachmentUrl:
           type: string
           format: uri
+    CreateContactMessage:
+      type: object
+      required: [name, email, message]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        message:
+          type: string
+    UpdateContactMessage:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [new, in-progress, resolved, archived]
     CreateProduct:
       type: object
       required: [title, sku, basePrice, allowsNfc]
@@ -715,6 +1003,12 @@ components:
           type: string
         allowsNfc:
           type: boolean
+        allowsLogoUpload:
+          type: boolean
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductImage'
     UpdateProduct:
       type: object
       properties:
@@ -731,6 +1025,12 @@ components:
           type: string
         allowsNfc:
           type: boolean
+        allowsLogoUpload:
+          type: boolean
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductImage'
     CreateCheckout:
       type: object
       required: [orderId, successUrl, cancelUrl]

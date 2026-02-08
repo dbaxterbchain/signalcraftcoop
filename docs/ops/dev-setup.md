@@ -81,6 +81,13 @@ cd web
 npm run verify:local
 ```
 
+Database schema check (API):
+
+```bash
+cd api
+npm run verify:db
+```
+
 Optional infra check (synth only):
 
 ```bash
@@ -117,6 +124,17 @@ In the Cognito App Client settings, add:
 If you enable Google as an IdP:
 - Add Google redirect URI: `https://<your-cognito-domain>/oauth2/idpresponse`
 - In the Cognito Google IdP settings, enter scopes space-delimited: `openid email profile`
+
+## 8) Local admin access (staging pool)
+
+For local admin testing we use the staging user pool:
+- User pool: `us-west-2_2LGGVLy5B`
+- Admin group: `admin`
+
+Add your user to the admin group in Cognito:
+1) Open Cognito User Pools → `us-west-2_2LGGVLy5B`
+2) Create or locate your user
+3) Add the user to the `admin` group
 
 ## Troubleshooting
 

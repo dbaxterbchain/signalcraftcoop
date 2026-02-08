@@ -1,6 +1,7 @@
 {
   "name": "signalcraftcoop",
   "private": true,
+  "packageManager": "npm@11.9.0",
   "scripts": {
     "verify:api": "npm --prefix api run verify:local",
     "verify:web": "npm --prefix web run verify:local",

@@ -3,10 +3,19 @@ import { AuthModule } from '../auth/auth.module';
 import { DesignReviewModule } from '../design-review/design-review.module';
 import { OrdersModule } from '../orders/orders.module';
 import { ProductsModule } from '../products/products.module';
+import { UploadsModule } from '../uploads/uploads.module';
+import { ContactModule } from '../contact/contact.module';
 import { AdminController } from './admin.controller';
 
 @Module({
-  imports: [AuthModule, OrdersModule, ProductsModule, DesignReviewModule],
+  imports: [
+    AuthModule,
+    OrdersModule,
+    ProductsModule,
+    DesignReviewModule,
+    UploadsModule,
+    ContactModule,
+  ],
   controllers: [AdminController],
 })
 export class AdminModule {}

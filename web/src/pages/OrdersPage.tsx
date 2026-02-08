@@ -9,13 +9,15 @@ import {
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import { useEffect, useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
-import { getOrders } from '../api/client';
-import type { Order } from '../api/types';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { createOrder, getOrders } from '../api/client';
+import type { CreateOrderPayload, Order } from '../api/types';
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [reorderId, setReorderId] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     let active = true;
@@ -39,6 +41,36 @@ export default function OrdersPage() {
       active = false;
     };
   }, []);
+
+  const handleReorder = async (order: Order) => {
+    if (!order.items || order.items.length === 0) {
+      setError('Unable to reorder: missing order items.');
+      return;
+    }
+    setReorderId(order.id);
+    setError(null);
+    try {
+      const payload: CreateOrderPayload = {
+        type: order.type === 'store' ? 'store' : 'custom',
+        items: order.items.map((item) => ({
+          productId: item.productId,
+          title: item.title,
+          sku: item.sku,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          nfcConfig: item.nfcConfig,
+          designId: item.designId,
+          metadata: item.metadata,
+        })),
+      };
+      const newOrder = await createOrder(payload);
+      navigate(`/orders/${newOrder.id}`);
+    } catch {
+      setError('Unable to reorder right now.');
+    } finally {
+      setReorderId(null);
+    }
+  };
 
   return (
     <Box sx={{ py: { xs: 6, md: 10 } }}>
@@ -100,14 +132,20 @@ export default function OrdersPage() {
                     <Typography variant="body2" color="text.secondary">
                       Total: {order.total ? `$${order.total.toFixed(2)}` : 'TBD'}
                     </Typography>
-                    <Button
-                      component={RouterLink}
-                      to={`/orders/${order.id}`}
-                      variant="outlined"
-                      sx={{ alignSelf: 'flex-start' }}
-                    >
-                      View order
-                    </Button>
+                    <Stack direction="row" spacing={2} sx={{ alignSelf: 'flex-start' }}>
+                      <Button component={RouterLink} to={`/orders/${order.id}`} variant="outlined">
+                        View order
+                      </Button>
+                      {order.status === 'complete' && (
+                        <Button
+                          variant="contained"
+                          onClick={() => handleReorder(order)}
+                          disabled={reorderId === order.id}
+                        >
+                          {reorderId === order.id ? 'Reordering...' : 'Reorder'}
+                        </Button>
+                      )}
+                    </Stack>
                   </Stack>
                 </Box>
               </Grid>

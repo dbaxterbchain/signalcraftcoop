@@ -17,10 +17,12 @@ This model supports custom orders and store orders in the same workflow.
 - user_id (User)
 - order_number (human readable)
 - type (custom | store)
-- status (intake | designing | review | approved | production | shipping | complete | on-hold | canceled)
+- status (submitted | designing | review | approved | production | shipping | complete | on-hold | canceled)
 - subtotal, tax, shipping, total
 - payment_status (unpaid | authorized | paid | refunded | disputed)
 - shipping_address_id, billing_address_id
+- shipping_carrier, shipping_service, tracking_number, tracking_url
+- shipped_at, delivered_at
 - created_at, updated_at
 
 ### OrderItem
@@ -81,13 +83,30 @@ This model supports custom orders and store orders in the same workflow.
 - User 1..* Order
 - Order 1..* OrderItem
 - Order 1..* Design
+- Order 1..* OrderEvent
 - Design 1..* DesignReview
 - OrderItem 0..1 Product
 - OrderItem 0..1 NFCConfig
 - User 0..* Address
 
+### OrderEvent
+- id (uuid)
+- order_id (Order)
+- status (optional)
+- message
+- created_by (User or admin)
+- created_at
+
+### ContactMessage
+- id (uuid)
+- name, email
+- message
+- status (new | in-progress | resolved | archived)
+- created_at, updated_at
+
 ## Notes
 - OrderItem snapshots store title and sku so historical orders stay accurate if Product changes.
+- DB still stores the initial status as `intake`; API/UI should use `submitted`.
 - Multiple Design versions can exist for a single Order. Only one should be marked approved.
 - DesignReview represents a single customer response to a design version.
 - Prisma schema draft lives at `api/prisma/schema.prisma`.

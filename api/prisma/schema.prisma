@@ -1,6 +1,5 @@
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -44,6 +43,11 @@ enum DesignReviewStatus {
   changes_requested
 }
 
+enum ContactStatus {
+  open
+  closed
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -77,14 +81,26 @@ model Order {
   type            OrderType
   status          OrderStatus
   paymentStatus   PaymentStatus @default(unpaid)
+  paymentRequiredAt DateTime?
+  paidAt          DateTime?
+  paymentProvider String?
+  paymentReference String?
+  paymentMethod   String?
   subtotal        Float
   tax             Float
   shipping        Float
   total           Float
-  shippingAddress String?
-  billingAddress  String?
+  shippingAddress Json?
+  billingAddress  Json?
+  shippingCarrier String?
+  shippingService String?
+  trackingNumber  String?
+  trackingUrl     String?
+  shippedAt       DateTime?
+  deliveredAt     DateTime?
   items           OrderItem[]
   designs         Design[]
+  events          OrderEvent[]
   user            User?         @relation(fields: [userId], references: [id])
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -98,6 +114,7 @@ model OrderItem {
   sku         String?
   quantity    Int
   unitPrice   Float
+  metadata    Json?
   nfcConfigId String?   @unique
   designId    String?
   order       Order     @relation(fields: [orderId], references: [id])
@@ -113,10 +130,23 @@ model Product {
   basePrice  Float
   category   String?
   allowsNfc  Boolean   @default(false)
+  allowsLogoUpload Boolean @default(false)
   active     Boolean   @default(true)
+  images     ProductImage[]
   items      OrderItem[]
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
+}
+
+model ProductImage {
+  id        String   @id @default(uuid())
+  productId String
+  url       String
+  isMain    Boolean  @default(false)
+  sortOrder Int      @default(0)
+  altText   String?
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 }
 
 model Design {
@@ -139,6 +169,30 @@ model DesignReview {
   attachmentUrl String?
   design       Design             @relation(fields: [designId], references: [id])
   createdAt    DateTime           @default(now())
+}
+
+model OrderEvent {
+  id          String   @id @default(uuid())
+  orderId     String
+  type        String
+  title       String
+  description String?
+  metadata    Json?
+  isCustomerVisible Boolean @default(true)
+  createdBy   String?
+  order       Order    @relation(fields: [orderId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model ContactMessage {
+  id        String        @id @default(uuid())
+  name      String
+  email     String
+  subject   String?
+  message   String
+  status    ContactStatus @default(open)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 }
 
 model NFCConfig {

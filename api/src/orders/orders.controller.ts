@@ -25,18 +25,22 @@ export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Get()
-  listOrders(@Query('status') status?: string, @Query('type') type?: string) {
-    return this.ordersService.listOrders({ status, type });
+  listOrders(
+    @Query('status') status?: string,
+    @Query('type') type?: string,
+    @CurrentUser() user?: AuthUser,
+  ) {
+    return this.ordersService.listOrders({ status, type }, user);
   }
 
   @Post()
-  createOrder(@Body() payload: CreateOrderDto) {
-    return this.ordersService.createOrder(payload);
+  createOrder(@Body() payload: CreateOrderDto, @CurrentUser() user?: AuthUser) {
+    return this.ordersService.createOrder(payload, user);
   }
 
   @Get(':orderId')
-  getOrder(@Param('orderId') orderId: string) {
-    return this.ordersService.getOrder(orderId);
+  getOrder(@Param('orderId') orderId: string, @CurrentUser() user?: AuthUser) {
+    return this.ordersService.getOrder(orderId, user);
   }
 
   @Patch(':orderId/status')
@@ -45,8 +49,9 @@ export class OrdersController {
   updateStatus(
     @Param('orderId') orderId: string,
     @Body() payload: UpdateOrderStatusDto,
+    @CurrentUser() user?: AuthUser,
   ) {
-    return this.ordersService.updateStatus(orderId, payload);
+    return this.ordersService.updateStatus(orderId, payload, user);
   }
 
   @Patch(':orderId/payment')

@@ -10,6 +10,7 @@ import {
   aws_route53 as route53,
   aws_route53_targets as route53targets,
   aws_secretsmanager as secretsmanager,
+  aws_s3 as s3,
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import path from 'path';
@@ -58,44 +59,33 @@ export class ApiLambdaStack extends cdk.Stack {
           : logs.RetentionDays.ONE_WEEK,
     });
 
-    const apiLambda = new lambda.Function(this, 'ApiLambda', {
-      code: lambda.Code.fromAsset(repoRoot, {
-        assetHashType: cdk.AssetHashType.OUTPUT,
-        bundling: {
-          image: lambda.Runtime.NODEJS_20_X.bundlingImage,
-          command: [
-            'bash',
-            '-c',
-            [
-              'mkdir -p /tmp/npm-cache',
-              'chmod -R 777 /tmp/npm-cache',
-              'rm -rf /tmp/build',
-              'mkdir -p /tmp/build',
-              'cp /asset-input/api/package.json /asset-input/api/package-lock.json /tmp/build/',
-              'cp -R /asset-input/api/src /tmp/build/src',
-              'cp -R /asset-input/api/prisma /tmp/build/prisma',
-              'cp /asset-input/api/prisma.config.ts /asset-input/api/tsconfig.json /asset-input/api/tsconfig.build.json /tmp/build/',
-              'cd /tmp/build',
-              'NPM_CONFIG_CACHE=/tmp/npm-cache npm ci',
-              'DATABASE_URL=postgresql://prisma:prisma@localhost:5432/prisma?schema=public npx prisma generate --schema=prisma/schema.prisma',
-              'npm run build',
-              'NPM_CONFIG_CACHE=/tmp/npm-cache npm prune --omit=dev',
-              'mkdir -p /asset-output/certs',
-              'cp /asset-input/api/certs/rds-ca.pem /asset-output/certs/rds-ca.pem',
-              'cp -R dist /asset-output/dist',
-              'cp -R node_modules /asset-output/node_modules',
-              'find /asset-output/node_modules -type l -delete',
-              'rm -rf /asset-output/node_modules/prisma',
-              'rm -rf /asset-output/node_modules/@prisma/engines',
-              'rm -rf /asset-output/node_modules/@prisma/engines-version',
-              'rm -rf /asset-output/node_modules/@prisma/fetch-engine',
-              'rm -rf /asset-output/node_modules/.bin',
-            ].join(' && '),
+
+    const uploadsBucket = new s3.Bucket(this, 'UploadsBucket', {
+      enforceSSL: true,
+      publicReadAccess: true,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ACLS,
+      objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_PREFERRED,
+      cors: [
+        {
+          allowedHeaders: ['*'],
+          allowedMethods: [
+            s3.HttpMethods.PUT,
+            s3.HttpMethods.GET,
+            s3.HttpMethods.HEAD,
           ],
+          allowedOrigins: [webOrigin.valueAsString, 'http://localhost:5173'],
+          exposedHeaders: ['ETag'],
         },
-      }),
-      handler: 'dist/src/lambda.handler',
-      runtime: lambda.Runtime.NODEJS_20_X,
+      ],
+    });
+
+    const apiLambda = new lambda.DockerImageFunction(this, 'ApiLambda', {
+      code: lambda.DockerImageCode.fromImageAsset(
+        path.join(repoRoot, 'api'),
+        {
+          file: 'Dockerfile.lambda',
+        },
+      ),
       memorySize: props.config.name === 'prod' ? 1024 : 768,
       timeout: cdk.Duration.seconds(30),
       vpc: props.vpc,
@@ -121,8 +111,13 @@ export class ApiLambdaStack extends cdk.Stack {
         DB_USER: dbUser,
         DB_PASSWORD: dbPassword,
         AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
+        UPLOADS_BUCKET: uploadsBucket.bucketName,
+        UPLOADS_PUBLIC_BASE_URL: `https://${uploadsBucket.bucketRegionalDomainName}`,
+        UPLOADS_PREFIX: 'designs',
       },
     });
+
+    uploadsBucket.grantPut(apiLambda);
 
     const migrationLambda = new lambda.Function(this, 'ApiMigrationLambda', {
       code: lambda.Code.fromAsset(repoRoot, {
@@ -316,6 +311,10 @@ export class ApiLambdaStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, 'MigrationsLambdaName', {
       value: migrationLambda.functionName,
+    });
+
+    new cdk.CfnOutput(this, 'UploadsBucketName', {
+      value: uploadsBucket.bucketName,
     });
   }
 }

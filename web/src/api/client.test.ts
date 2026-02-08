@@ -2,11 +2,24 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createDesign,
   createDesignReview,
+  createOrderEvent,
+  createUploadUrl,
+  createCustomerUploadUrl,
   createOrder,
+  createProduct,
+  deactivateProduct,
+  getAdminOrders,
+  getAdminProducts,
+  getContactMessages,
   getDesigns,
   getOrder,
   getOrders,
   getProducts,
+  submitContactMessage,
+  updateContactMessage,
+  updateOrderStatus,
+  updateOrderShipping,
+  updateProduct,
   updatePaymentStatus,
 } from './client';
 
@@ -60,7 +73,7 @@ describe('api client', () => {
   it('sends json body for createOrder', async () => {
     const response = {
       ok: true,
-      json: vi.fn().mockResolvedValue({ id: 'order_1', type: 'custom', status: 'intake' }),
+      json: vi.fn().mockResolvedValue({ id: 'order_1', type: 'custom', status: 'submitted' }),
     };
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
     fetchMock.mockResolvedValue(response);
@@ -88,11 +101,11 @@ describe('api client', () => {
     fetchMock
       .mockResolvedValueOnce({
         ok: true,
-        json: vi.fn().mockResolvedValue([{ id: 'order_1', type: 'custom', status: 'intake' }]),
+        json: vi.fn().mockResolvedValue([{ id: 'order_1', type: 'custom', status: 'submitted' }]),
       })
       .mockResolvedValueOnce({
         ok: true,
-        json: vi.fn().mockResolvedValue({ id: 'order_1', type: 'custom', status: 'intake' }),
+        json: vi.fn().mockResolvedValue({ id: 'order_1', type: 'custom', status: 'submitted' }),
       })
       .mockResolvedValueOnce({
         ok: true,
@@ -136,7 +149,7 @@ describe('api client', () => {
         json: vi.fn().mockResolvedValue({
           id: 'order_1',
           type: 'custom',
-          status: 'intake',
+          status: 'submitted',
           paymentStatus: 'paid',
         }),
       });
@@ -163,6 +176,114 @@ describe('api client', () => {
       3,
       'http://localhost:3000/orders/order_1/payment',
       expect.objectContaining({ method: 'PATCH' }),
+    );
+  });
+
+  it('posts admin upload presign and order status updates', async () => {
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          uploadUrl: 'https://uploads.example.com',
+          fileUrl: 'https://uploads.example.com/file.png',
+          key: 'designs/order/file.png',
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          id: 'order_1',
+          type: 'custom',
+          status: 'review',
+        }),
+      });
+
+    await createUploadUrl({
+      fileName: 'file.png',
+      contentType: 'image/png',
+      category: 'preview',
+      orderId: 'order_1',
+    });
+    await updateOrderStatus('order_1', { status: 'review' });
+
+    expect(fetch).toHaveBeenNthCalledWith(
+      1,
+      'http://localhost:3000/admin/uploads/presign',
+      expect.objectContaining({ method: 'POST' }),
+    );
+    expect(fetch).toHaveBeenNthCalledWith(
+      2,
+      'http://localhost:3000/admin/orders/order_1/status',
+      expect.objectContaining({ method: 'PATCH' }),
+    );
+  });
+
+  it('calls admin, customer, and contact endpoints', async () => {
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    const ok = (data: unknown) => ({
+      ok: true,
+      json: vi.fn().mockResolvedValue(data),
+    });
+
+    fetchMock
+      .mockResolvedValueOnce(ok([{ id: 'order_1' }]))
+      .mockResolvedValueOnce(ok({ id: 'order_1' }))
+      .mockResolvedValueOnce(ok({ id: 'event_1' }))
+      .mockResolvedValueOnce(ok([{ id: 'prod_1' }]))
+      .mockResolvedValueOnce(ok({ id: 'prod_1' }))
+      .mockResolvedValueOnce(ok({ id: 'prod_1' }))
+      .mockResolvedValueOnce(ok({ id: 'prod_1' }))
+      .mockResolvedValueOnce(ok([{ id: 'msg_1' }]))
+      .mockResolvedValueOnce(ok({ id: 'msg_1' }))
+      .mockResolvedValueOnce(ok({ id: 'msg_2' }))
+      .mockResolvedValueOnce(
+        ok({
+          uploadUrl: 'https://uploads.example.com',
+          fileUrl: 'https://uploads.example.com/logo.png',
+          key: 'logos/logo.png',
+        }),
+      );
+
+    await getAdminOrders();
+    await updateOrderShipping('order_1', { trackingNumber: 'TRACK' });
+    await createOrderEvent('order_1', { type: 'note', title: 'Note' });
+    await getAdminProducts();
+    await createProduct({ title: 'Keychain', sku: 'KEY-1', basePrice: 10 });
+    await updateProduct('prod_1', { title: 'Updated' });
+    await deactivateProduct('prod_1');
+    await getContactMessages();
+    await updateContactMessage('msg_1', { status: 'closed' });
+    await submitContactMessage({
+      name: 'Jamie',
+      email: 'jamie@example.com',
+      message: 'Hello',
+    });
+    await createCustomerUploadUrl({
+      fileName: 'logo.png',
+      contentType: 'image/png',
+      category: 'logo',
+    });
+
+    expect(fetch).toHaveBeenNthCalledWith(
+      1,
+      'http://localhost:3000/admin/orders',
+      expect.any(Object),
+    );
+    expect(fetch).toHaveBeenNthCalledWith(
+      2,
+      'http://localhost:3000/admin/orders/order_1/shipping',
+      expect.objectContaining({ method: 'PATCH' }),
+    );
+    expect(fetch).toHaveBeenNthCalledWith(
+      3,
+      'http://localhost:3000/admin/orders/order_1/events',
+      expect.objectContaining({ method: 'POST' }),
+    );
+    expect(fetch).toHaveBeenNthCalledWith(
+      11,
+      'http://localhost:3000/uploads/presign',
+      expect.objectContaining({ method: 'POST' }),
     );
   });
 });

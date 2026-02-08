@@ -2,14 +2,23 @@ import {
   getApiToken,
 } from '../auth/auth';
 import type {
+  ContactMessage,
+  CreateContactMessagePayload,
+  CreateUploadUrlPayload,
+  CreateOrderEventPayload,
   CreateDesignPayload,
   CreateDesignReviewPayload,
   CreateOrderPayload,
   Design,
   DesignReview,
   Order,
+  OrderEvent,
   Product,
+  UpdateContactMessagePayload,
+  UpdateOrderStatusPayload,
+  UpdateOrderShippingPayload,
   UpdatePaymentStatusPayload,
+  UploadUrlResponse,
 } from './types';
 
 const baseUrl = (import.meta.env.VITE_API_URL as string) ?? 'http://localhost:3000';
@@ -54,6 +63,10 @@ export function getProducts(): Promise<Product[]> {
   return request<Product[]>('/products');
 }
 
+export function getProduct(productId: string): Promise<Product> {
+  return request<Product>(`/products/${productId}`);
+}
+
 export function createOrder(payload: CreateOrderPayload): Promise<Order> {
   return request<Order>('/orders', {
     method: 'POST',
@@ -67,6 +80,10 @@ export function getOrders(): Promise<Order[]> {
 
 export function getOrder(orderId: string): Promise<Order> {
   return request<Order>(`/orders/${orderId}`);
+}
+
+export function getAdminOrders(): Promise<Order[]> {
+  return request<Order[]>('/admin/orders');
 }
 
 export function getDesigns(orderId: string): Promise<Design[]> {
@@ -85,6 +102,102 @@ export function createDesignReview(
   payload: CreateDesignReviewPayload,
 ): Promise<DesignReview> {
   return request<DesignReview>(`/designs/${designId}/reviews`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function createUploadUrl(payload: CreateUploadUrlPayload): Promise<UploadUrlResponse> {
+  return request<UploadUrlResponse>('/admin/uploads/presign', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function createCustomerUploadUrl(
+  payload: CreateUploadUrlPayload,
+): Promise<UploadUrlResponse> {
+  return request<UploadUrlResponse>('/uploads/presign', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function updateOrderStatus(
+  orderId: string,
+  payload: UpdateOrderStatusPayload,
+): Promise<Order> {
+  return request<Order>(`/admin/orders/${orderId}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function updateOrderShipping(
+  orderId: string,
+  payload: UpdateOrderShippingPayload,
+): Promise<Order> {
+  return request<Order>(`/admin/orders/${orderId}/shipping`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function createOrderEvent(
+  orderId: string,
+  payload: CreateOrderEventPayload,
+): Promise<OrderEvent> {
+  return request<OrderEvent>(`/admin/orders/${orderId}/events`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getAdminProducts(): Promise<Product[]> {
+  return request<Product[]>('/admin/products');
+}
+
+export function createProduct(payload: Partial<Product>): Promise<Product> {
+  return request<Product>('/admin/products', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function updateProduct(
+  productId: string,
+  payload: Partial<Product>,
+): Promise<Product> {
+  return request<Product>(`/admin/products/${productId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deactivateProduct(productId: string): Promise<Product> {
+  return request<Product>(`/admin/products/${productId}/deactivate`, {
+    method: 'PATCH',
+  });
+}
+
+export function getContactMessages(): Promise<ContactMessage[]> {
+  return request<ContactMessage[]>('/admin/messages');
+}
+
+export function updateContactMessage(
+  messageId: string,
+  payload: UpdateContactMessagePayload,
+): Promise<ContactMessage> {
+  return request<ContactMessage>(`/admin/messages/${messageId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function submitContactMessage(
+  payload: CreateContactMessagePayload,
+): Promise<ContactMessage> {
+  return request<ContactMessage>('/contact', {
     method: 'POST',
     body: JSON.stringify(payload),
   });

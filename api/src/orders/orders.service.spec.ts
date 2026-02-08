@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import {
   Prisma,
   OrderStatus as DbOrderStatus,
@@ -7,6 +7,7 @@ import {
 } from '@prisma/client';
 import { OrdersService } from './orders.service';
 import { OrderStatus, OrderType, PaymentStatus } from './dto/order.enums';
+import type { AuthUser } from '../auth/types/auth-user';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 
@@ -19,10 +20,24 @@ describe('OrdersService', () => {
     type: DbOrderType;
     status: DbOrderStatus;
     paymentStatus: DbPaymentStatus;
+    paymentRequiredAt?: Date | null;
+    paidAt?: Date | null;
+    paymentProvider?: string | null;
+    paymentReference?: string | null;
+    paymentMethod?: string | null;
     subtotal: number;
     tax: number;
     shipping: number;
     total: number;
+    shippingAddress?: Prisma.JsonValue | string | null;
+    billingAddress?: Prisma.JsonValue | string | null;
+    shippingCarrier?: string | null;
+    shippingService?: string | null;
+    trackingNumber?: string | null;
+    trackingUrl?: string | null;
+    shippedAt?: Date | null;
+    deliveredAt?: Date | null;
+    userId?: string | null;
     createdAt: Date;
     items: Array<{
       id: string;
@@ -38,6 +53,16 @@ describe('OrdersService', () => {
         notes?: string | null;
       } | null;
     }>;
+    events?: Array<{
+      id: string;
+      type: string;
+      title: string;
+      description?: string | null;
+      metadata?: Record<string, unknown> | null;
+      isCustomerVisible?: boolean | null;
+      createdBy?: string | null;
+      createdAt: Date;
+    }>;
   };
 
   type OrderDelegateMock = {
@@ -51,8 +76,16 @@ describe('OrdersService', () => {
     count: jest.Mock<Promise<number>, [Prisma.OrderCountArgs?]>;
   };
 
+  type OrderEventDelegateMock = {
+    create: jest.Mock<Promise<{ id: string }>, [Prisma.OrderEventCreateArgs]>;
+  };
+
   type PrismaMock = {
     order: OrderDelegateMock;
+    orderEvent: OrderEventDelegateMock;
+    user: {
+      upsert: jest.Mock<Promise<{ id: string }>, [Prisma.UserUpsertArgs]>;
+    };
   };
 
   const makeOrder = (overrides: Partial<OrderRecord> = {}): OrderRecord => ({
@@ -85,6 +118,12 @@ describe('OrdersService', () => {
     ...overrides,
   });
 
+  const makeUser = (overrides: Partial<AuthUser> = {}): AuthUser => ({
+    sub: 'user_sub',
+    raw: {},
+    ...overrides,
+  });
+
   const createService = () => {
     const prisma: PrismaMock = {
       order: {
@@ -97,6 +136,15 @@ describe('OrdersService', () => {
         update: jest.fn<Promise<OrderRecord>, [Prisma.OrderUpdateArgs]>(),
         count: jest.fn<Promise<number>, [Prisma.OrderCountArgs?]>(),
       },
+      orderEvent: {
+        create: jest.fn<
+          Promise<{ id: string }>,
+          [Prisma.OrderEventCreateArgs]
+        >(),
+      },
+      user: {
+        upsert: jest.fn<Promise<{ id: string }>, [Prisma.UserUpsertArgs]>(),
+      },
     };
     const service = new OrdersService(prisma as unknown as PrismaService);
     return { prisma, service };
@@ -107,7 +155,10 @@ describe('OrdersService', () => {
     const order = makeOrder();
     prisma.order.findMany.mockResolvedValue([order]);
 
-    const result = await service.listOrders({});
+    const result = await service.listOrders(
+      {},
+      makeUser({ groups: ['admin'] }),
+    );
 
     expect(prisma.order.findMany).toHaveBeenCalledWith({
       where: {},
@@ -125,10 +176,13 @@ describe('OrdersService', () => {
     });
     prisma.order.findMany.mockResolvedValue([order]);
 
-    const result = await service.listOrders({
-      status: OrderStatus.Review,
-      type: OrderType.Store,
-    });
+    const result = await service.listOrders(
+      {
+        status: OrderStatus.Review,
+        type: OrderType.Store,
+      },
+      makeUser({ groups: ['admin'] }),
+    );
 
     expect(prisma.order.findMany).toHaveBeenCalledWith({
       where: { status: DbOrderStatus.review, type: DbOrderType.store },
@@ -186,9 +240,9 @@ describe('OrdersService', () => {
     const { prisma, service } = createService();
     prisma.order.findUnique.mockResolvedValue(null);
 
-    await expect(service.getOrder('missing')).rejects.toBeInstanceOf(
-      NotFoundException,
-    );
+    await expect(
+      service.getOrder('missing', makeUser({ groups: ['admin'] })),
+    ).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it('returns order details with optional fields mapped', async () => {
@@ -209,7 +263,10 @@ describe('OrdersService', () => {
     });
     prisma.order.findUnique.mockResolvedValue(order);
 
-    const result = await service.getOrder(order.id);
+    const result = await service.getOrder(
+      order.id,
+      makeUser({ groups: ['admin'] }),
+    );
 
     expect(result.items[0].productId).toBeUndefined();
     expect(result.items[0].sku).toBeUndefined();
@@ -221,16 +278,21 @@ describe('OrdersService', () => {
     const { prisma, service } = createService();
     const order = makeOrder({ status: DbOrderStatus.review });
     prisma.order.update.mockResolvedValue(order);
+    prisma.order.findUnique.mockResolvedValue(order);
+    prisma.orderEvent.create.mockResolvedValue({ id: 'event_1' });
 
-    const result = await service.updateStatus(order.id, {
-      status: OrderStatus.Review,
-    });
+    const result = await service.updateStatus(
+      order.id,
+      { status: OrderStatus.Review },
+      makeUser({ groups: ['admin'] }),
+    );
 
     expect(prisma.order.update).toHaveBeenCalledWith({
       where: { id: order.id },
       data: { status: DbOrderStatus.review },
-      include: { items: { include: { nfcConfig: true } } },
     });
+    expect(prisma.orderEvent.create).toHaveBeenCalled();
+    expect(prisma.order.findUnique).toHaveBeenCalled();
     expect(result.status).toBe(OrderStatus.Review);
   });
 
@@ -245,9 +307,144 @@ describe('OrdersService', () => {
 
     expect(prisma.order.update).toHaveBeenCalledWith({
       where: { id: order.id },
-      data: { paymentStatus: DbPaymentStatus.paid },
+      data: {
+        paymentStatus: DbPaymentStatus.paid,
+        paidAt: expect.any(Date) as unknown as Date,
+      },
       include: { items: { include: { nfcConfig: true } } },
     });
     expect(result.paymentStatus).toBe(DbPaymentStatus.paid);
+  });
+
+  it('returns empty list when unauthenticated', async () => {
+    const { prisma, service } = createService();
+
+    const result = await service.listOrders({});
+
+    expect(result).toEqual([]);
+    expect(prisma.order.findMany).not.toHaveBeenCalled();
+  });
+
+  it('scopes list orders to the current user', async () => {
+    const { prisma, service } = createService();
+    const order = makeOrder({ userId: 'user_1' });
+    prisma.user.upsert.mockResolvedValue({ id: 'user_1' });
+    prisma.order.findMany.mockResolvedValue([order]);
+
+    const result = await service.listOrders(
+      { status: 'submitted' },
+      makeUser({ email: 'user@example.com', groups: [] }),
+    );
+
+    expect(prisma.user.upsert).toHaveBeenCalledWith({
+      where: { email: 'user@example.com' },
+      update: { name: undefined },
+      create: { email: 'user@example.com', name: undefined },
+    });
+    expect(prisma.order.findMany).toHaveBeenCalledWith({
+      where: { status: DbOrderStatus.intake, userId: 'user_1' },
+      include: { items: { include: { nfcConfig: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+    expect(result[0].status).toBe(OrderStatus.Submitted);
+  });
+
+  it('ignores unknown type filters', async () => {
+    const { prisma, service } = createService();
+    const order = makeOrder({ status: DbOrderStatus.review });
+    prisma.order.findMany.mockResolvedValue([order]);
+
+    await service.listOrders(
+      { status: 'review', type: 'unknown' },
+      makeUser({ groups: ['admin'] }),
+    );
+
+    expect(prisma.order.findMany).toHaveBeenCalledWith({
+      where: { status: DbOrderStatus.review },
+      include: { items: { include: { nfcConfig: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+  });
+
+  it('rejects access when user does not own the order', async () => {
+    const { prisma, service } = createService();
+    const order = makeOrder({ userId: 'owner_1' });
+    prisma.user.upsert.mockResolvedValue({ id: 'user_1' });
+    prisma.order.findUnique.mockResolvedValue(order);
+
+    await expect(
+      service.getOrder(
+        order.id,
+        makeUser({ email: 'user@example.com', groups: [] }),
+      ),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it('updates shipping details and logs an event', async () => {
+    const { prisma, service } = createService();
+    const order = makeOrder();
+    prisma.order.update.mockResolvedValue(order);
+    prisma.order.findUnique.mockResolvedValue(order);
+    prisma.orderEvent.create.mockResolvedValue({ id: 'event_2' });
+
+    await service.updateShipping(
+      order.id,
+      {
+        shippingCarrier: 'USPS',
+        shippingService: 'Priority',
+        trackingNumber: 'TRACK123',
+        trackingUrl: 'https://tracking.example',
+        shippedAt: '2024-01-02T00:00:00.000Z',
+      },
+      makeUser({ groups: ['admin'] }),
+    );
+
+    expect(prisma.order.update).toHaveBeenCalledWith({
+      where: { id: order.id },
+      data: {
+        shippingCarrier: 'USPS',
+        shippingService: 'Priority',
+        trackingNumber: 'TRACK123',
+        trackingUrl: 'https://tracking.example',
+        shippedAt: new Date('2024-01-02T00:00:00.000Z'),
+        deliveredAt: undefined,
+      },
+    });
+    expect(prisma.orderEvent.create).toHaveBeenCalledWith({
+      data: {
+        orderId: order.id,
+        type: 'shipping',
+        title: 'Shipping updated',
+        description: 'Tracking number TRACK123',
+        createdBy: undefined,
+        isCustomerVisible: true,
+      },
+    });
+  });
+
+  it('creates an order event for existing orders', async () => {
+    const { prisma, service } = createService();
+    const order = makeOrder();
+    prisma.order.findUnique.mockResolvedValue(order);
+    prisma.orderEvent.create.mockResolvedValue({ id: 'event_3' });
+
+    const result = await service.addEvent(
+      order.id,
+      { type: 'note', title: 'Manual note', description: 'Added by admin' },
+      makeUser({ email: 'admin@example.com', groups: ['admin'] }),
+    );
+
+    expect(prisma.orderEvent.create).toHaveBeenCalledWith({
+      data: {
+        orderId: order.id,
+        type: 'note',
+        title: 'Manual note',
+        description: 'Added by admin',
+        metadata: undefined,
+        isCustomerVisible: true,
+        createdBy: 'admin@example.com',
+      },
+    });
+    expect(result).toEqual({ id: 'event_3' });
   });
 });

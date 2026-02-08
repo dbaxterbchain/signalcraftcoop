@@ -16,7 +16,16 @@ describe('ProductsService', () => {
     basePrice: number;
     category: string | null;
     allowsNfc: boolean;
+    allowsLogoUpload: boolean;
     active: boolean;
+    images: {
+      id: string;
+      url: string;
+      isMain: boolean;
+      sortOrder: number;
+      altText: string | null;
+      createdAt: Date;
+    }[];
     createdAt: Date;
   };
 
@@ -27,6 +36,10 @@ describe('ProductsService', () => {
     findUnique: jest.Mock<
       Promise<ProductRecord | null>,
       [Prisma.ProductFindUniqueArgs]
+    >;
+    findFirst: jest.Mock<
+      Promise<ProductRecord | null>,
+      [Prisma.ProductFindFirstArgs]
     >;
   };
 
@@ -44,7 +57,9 @@ describe('ProductsService', () => {
     basePrice: 12,
     category: 'merch',
     allowsNfc: true,
+    allowsLogoUpload: false,
     active: true,
+    images: [],
     createdAt,
     ...overrides,
   });
@@ -62,6 +77,10 @@ describe('ProductsService', () => {
           Promise<ProductRecord | null>,
           [Prisma.ProductFindUniqueArgs]
         >(),
+        findFirst: jest.fn<
+          Promise<ProductRecord | null>,
+          [Prisma.ProductFindFirstArgs]
+        >(),
       },
     };
     const service = new ProductsService(prisma as unknown as PrismaService);
@@ -78,6 +97,7 @@ describe('ProductsService', () => {
     expect(prisma.product.findMany).toHaveBeenCalledWith({
       where: { active: true },
       orderBy: { createdAt: 'desc' },
+      include: { images: { orderBy: { sortOrder: 'asc' } } },
     });
     expect(result).toEqual([
       {
@@ -88,7 +108,9 @@ describe('ProductsService', () => {
         basePrice: product.basePrice,
         category: product.category,
         allowsNfc: product.allowsNfc,
+        allowsLogoUpload: product.allowsLogoUpload,
         active: product.active,
+        images: [],
         createdAt: product.createdAt.toISOString(),
       },
     ]);
@@ -103,8 +125,32 @@ describe('ProductsService', () => {
 
     expect(prisma.product.findMany).toHaveBeenCalledWith({
       orderBy: { createdAt: 'desc' },
+      include: { images: { orderBy: { sortOrder: 'asc' } } },
     });
     expect(result[0].active).toBe(false);
+  });
+
+  it('gets a product by id', async () => {
+    const { prisma, service } = createService();
+    const product = makeProduct();
+    prisma.product.findFirst.mockResolvedValue(product);
+
+    const result = await service.getProduct(product.id);
+
+    expect(prisma.product.findFirst).toHaveBeenCalledWith({
+      where: { id: product.id, active: true },
+      include: { images: { orderBy: { sortOrder: 'asc' } } },
+    });
+    expect(result.id).toBe(product.id);
+  });
+
+  it('throws when product is missing', async () => {
+    const { prisma, service } = createService();
+    prisma.product.findFirst.mockResolvedValue(null);
+
+    await expect(service.getProduct('missing')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 
   it('creates a product', async () => {
@@ -119,6 +165,7 @@ describe('ProductsService', () => {
       basePrice: product.basePrice,
       category: product.category ?? undefined,
       allowsNfc: product.allowsNfc,
+      allowsLogoUpload: product.allowsLogoUpload,
     };
 
     const result = await service.createProduct(payload);
@@ -131,8 +178,11 @@ describe('ProductsService', () => {
         basePrice: product.basePrice,
         category: product.category,
         allowsNfc: product.allowsNfc,
+        allowsLogoUpload: product.allowsLogoUpload,
         active: true,
+        images: undefined,
       },
+      include: { images: { orderBy: { sortOrder: 'asc' } } },
     });
     expect(result.id).toBe(product.id);
   });
@@ -150,6 +200,7 @@ describe('ProductsService', () => {
       basePrice: product.basePrice,
       category: product.category ?? undefined,
       allowsNfc: product.allowsNfc,
+      allowsLogoUpload: product.allowsLogoUpload,
     };
 
     const result = await service.updateProduct(product.id, payload);
@@ -171,6 +222,7 @@ describe('ProductsService', () => {
       basePrice: 10,
       category: 'cat',
       allowsNfc: false,
+      allowsLogoUpload: false,
     };
 
     await expect(
@@ -189,6 +241,7 @@ describe('ProductsService', () => {
     expect(prisma.product.update).toHaveBeenCalledWith({
       where: { id: product.id },
       data: { active: false },
+      include: { images: { orderBy: { sortOrder: 'asc' } } },
     });
     expect(result.active).toBe(false);
   });

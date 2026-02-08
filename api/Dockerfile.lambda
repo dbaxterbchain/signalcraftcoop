@@ -1,0 +1,28 @@
+FROM public.ecr.aws/sam/build-nodejs20.x:latest AS build
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY prisma ./prisma
+COPY prisma.config.ts tsconfig.json tsconfig.build.json ./
+COPY src ./src
+
+ENV PRISMA_CLI_BINARY_TARGETS=rhel-openssl-3.0.x
+ENV DATABASE_URL=postgresql://prisma:prisma@localhost:5432/prisma?schema=public
+RUN npm run prisma -- generate
+RUN npm run build
+RUN npm prune --omit=dev
+
+FROM public.ecr.aws/lambda/nodejs:20
+
+WORKDIR /var/task
+
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/prisma ./prisma
+COPY --from=build /app/prisma.config.ts ./prisma.config.ts
+COPY certs ./certs
+
+CMD ["dist/lambda.handler"]

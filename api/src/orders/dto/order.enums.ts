@@ -4,7 +4,7 @@ export enum OrderType {
 }
 
 export enum OrderStatus {
-  Intake = 'intake',
+  Submitted = 'submitted',
   Designing = 'designing',
   Review = 'review',
   Approved = 'approved',

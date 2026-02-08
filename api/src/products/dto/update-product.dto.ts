@@ -5,8 +5,10 @@ import {
   IsString,
   Min,
   MinLength,
+  ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { ProductImageDto } from './create-product.dto';
 
 export class UpdateProductDto {
   @IsOptional()
@@ -37,4 +39,14 @@ export class UpdateProductDto {
   @IsBoolean()
   @Type(() => Boolean)
   allowsNfc?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @Type(() => Boolean)
+  allowsLogoUpload?: boolean;
+
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => ProductImageDto)
+  images?: ProductImageDto[];
 }
