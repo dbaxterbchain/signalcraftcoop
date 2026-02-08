@@ -51,6 +51,52 @@ const orderStatusOptions: { value: OrderStatus; label: string }[] = [
   { value: 'canceled', label: 'Canceled' },
 ];
 
+const metadataLabels: Record<string, string> = {
+  businessName: 'Business name',
+  contactName: 'Contact name',
+  email: 'Email',
+  phone: 'Phone',
+  deadline: 'Deadline',
+  notes: 'Notes',
+  logoFileName: 'Logo file',
+  logoUrl: 'Logo URL',
+};
+
+const formatMetadataValue = (value: unknown) => {
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return String(value);
+  }
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+};
+
+const getMetadataEntries = (metadata?: Record<string, unknown>) => {
+  if (!metadata) {
+    return [];
+  }
+  return Object.entries(metadata)
+    .filter(([key]) => key !== 'logoUrl' && key !== 'logoFileName')
+    .map(([key, value]) => {
+      const label =
+        metadataLabels[key] ?? key.replace(/([a-z])([A-Z])/g, '$1 $2');
+      return {
+        key,
+        label,
+        value: formatMetadataValue(value),
+      };
+    })
+    .filter((entry) => entry.value !== undefined);
+};
+
 export default function OrderDetailPage() {
   const { orderId } = useParams();
   const [order, setOrder] = useState<Order | null>(null);
@@ -102,7 +148,18 @@ export default function OrderDetailPage() {
   const isImpersonating = isAdmin && searchParams.get('view') === 'customer';
   const showAdminControls = isAdmin && !isImpersonating;
   const allowMockPayments = import.meta.env.VITE_ALLOW_MOCK_PAYMENTS === 'true';
-  const canMockPayments = allowMockPayments || isAdmin;
+  const canMockPayments = showAdminControls || allowMockPayments;
+  const paymentRequired = Boolean(order?.paymentRequiredAt);
+  const paymentStatus = order?.paymentStatus ?? 'unpaid';
+  const paymentDue =
+    paymentStatus !== 'paid' &&
+    paymentStatus !== 'refunded' &&
+    paymentStatus !== 'disputed';
+  const showCustomerPayNow =
+    allowMockPayments && !showAdminControls && paymentRequired && paymentDue;
+  const showPaymentButton = showAdminControls
+    ? canMockPayments
+    : showCustomerPayNow;
 
   const orderLabel = useMemo(
     () => order?.orderNumber ?? order?.id ?? orderId ?? 'Order',
@@ -683,9 +740,9 @@ export default function OrderDetailPage() {
                       >
                         {orderStatusUpdating ? 'Updating...' : 'Update status'}
                       </Button>
-                        {orderStatusError && (
-                          <Alert severity="info">{orderStatusError}</Alert>
-                        )}
+                      {orderStatusError && (
+                        <Alert severity="info">{orderStatusError}</Alert>
+                      )}
                       <Box
                         sx={{
                           mt: 2,
@@ -776,13 +833,13 @@ export default function OrderDetailPage() {
                       </Box>
                     </Stack>
                   )}
-                  {canMockPayments && (
+                  {showPaymentButton && (
                     <Button
                       variant="outlined"
                       sx={{ mt: 2, alignSelf: 'flex-start' }}
                       onClick={() => setPaymentDialogOpen(true)}
                     >
-                      Simulate payment
+                      {showAdminControls ? 'Simulate payment' : 'Pay now'}
                     </Button>
                   )}
                 </Stack>
@@ -794,6 +851,105 @@ export default function OrderDetailPage() {
             </Box>
           </Grid>
         </Grid>
+        <Box
+          sx={{
+            mt: 4,
+            p: 3,
+            borderRadius: 3,
+            border: '1px solid #C5D6E5',
+            backgroundColor: '#FFFFFF',
+          }}
+        >
+          <Typography variant="h4" sx={{ mb: 2 }}>
+            Order items
+          </Typography>
+          {order?.items && order.items.length > 0 ? (
+            <Stack spacing={2}>
+              {order.items.map((item, index) => {
+                const metadata = item.metadata ?? undefined;
+                const metadataEntries = getMetadataEntries(metadata);
+                const logoUrl =
+                  typeof metadata?.logoUrl === 'string' ? metadata.logoUrl : undefined;
+                const logoFileName =
+                  typeof metadata?.logoFileName === 'string'
+                    ? metadata.logoFileName
+                    : undefined;
+                return (
+                  <Box
+                    key={`${item.title}-${index}`}
+                    sx={{
+                      p: 2,
+                      borderRadius: 2,
+                      border: '1px solid #E0E7EF',
+                      backgroundColor: '#F4F8FB',
+                    }}
+                  >
+                    <Stack spacing={1}>
+                      <Typography variant="subtitle1">{item.title}</Typography>
+                      {item.sku && (
+                        <Typography variant="body2" color="text.secondary">
+                          SKU: {item.sku}
+                        </Typography>
+                      )}
+                      <Typography variant="body2" color="text.secondary">
+                        Quantity: {item.quantity}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Unit price: ${item.unitPrice.toFixed(2)}
+                      </Typography>
+                      {item.nfcConfig?.url && (
+                        <Typography variant="body2" color="text.secondary">
+                          NFC: {item.nfcConfig.url}
+                        </Typography>
+                      )}
+                      {logoFileName && (
+                        <Typography variant="body2" color="text.secondary">
+                          Logo file: {logoFileName}
+                        </Typography>
+                      )}
+                      {logoUrl && (
+                        <Box
+                          component="img"
+                          src={logoUrl}
+                          alt={logoFileName ?? 'Uploaded logo'}
+                          sx={{
+                            width: '100%',
+                            maxWidth: 240,
+                            borderRadius: 2,
+                            border: '1px solid #C5D6E5',
+                            mt: 1,
+                          }}
+                        />
+                      )}
+                      {metadataEntries.length > 0 && (
+                        <Box sx={{ mt: 1 }}>
+                          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                            Request details
+                          </Typography>
+                          <Stack spacing={0.5}>
+                            {metadataEntries.map((entry) => (
+                              <Typography
+                                key={entry.key}
+                                variant="body2"
+                                color="text.secondary"
+                              >
+                                {entry.label}: {entry.value}
+                              </Typography>
+                            ))}
+                          </Stack>
+                        </Box>
+                      )}
+                    </Stack>
+                  </Box>
+                );
+              })}
+            </Stack>
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              No items available yet.
+            </Typography>
+          )}
+        </Box>
         <Box
           sx={{
             mt: 4,
@@ -911,10 +1067,12 @@ export default function OrderDetailPage() {
           )}
         </Box>
         <Dialog open={paymentDialogOpen} onClose={() => setPaymentDialogOpen(false)}>
-          <DialogTitle>Simulate payment</DialogTitle>
+          <DialogTitle>{showAdminControls ? 'Simulate payment' : 'Pay now'}</DialogTitle>
           <DialogContent>
             <Typography variant="body2" color="text.secondary">
-              Mark this order as paid or failed to keep the flow testable until Stripe is ready.
+              {showAdminControls
+                ? 'Mark this order as paid or failed to keep the flow testable until Stripe is ready.'
+                : 'Complete this mock payment to move the order forward.'}
             </Typography>
             {paymentError && (
               <Alert severity="info" sx={{ mt: 2 }}>
@@ -924,19 +1082,21 @@ export default function OrderDetailPage() {
           </DialogContent>
           <DialogActions sx={{ px: 3, pb: 2 }}>
             <Button onClick={() => setPaymentDialogOpen(false)}>Cancel</Button>
-            <Button
-              variant="outlined"
-              onClick={() => handlePaymentUpdate('unpaid')}
-              disabled={paymentUpdating}
-            >
-              Mark failed
-            </Button>
+            {showAdminControls && (
+              <Button
+                variant="outlined"
+                onClick={() => handlePaymentUpdate('unpaid')}
+                disabled={paymentUpdating}
+              >
+                Mark failed
+              </Button>
+            )}
             <Button
               variant="contained"
               onClick={() => handlePaymentUpdate('paid')}
               disabled={paymentUpdating}
             >
-              Mark paid
+              {showAdminControls ? 'Mark paid' : 'Complete payment'}
             </Button>
           </DialogActions>
         </Dialog>
