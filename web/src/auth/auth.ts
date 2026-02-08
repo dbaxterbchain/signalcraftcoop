@@ -100,7 +100,7 @@ export function getIdToken() {
 }
 
 export function getApiToken() {
-  return getIdToken() ?? getAccessToken();
+  return getAccessToken() ?? getIdToken();
 }
 
 export async function loginWithHostedUI(returnTo = '/orders') {
