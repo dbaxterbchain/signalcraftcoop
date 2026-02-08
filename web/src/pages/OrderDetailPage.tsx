@@ -30,6 +30,7 @@ import {
   updatePaymentStatus,
 } from '../api/client';
 import type {
+  Address,
   Design,
   DesignStatus,
   Order,
@@ -77,6 +78,20 @@ const formatMetadataValue = (value: unknown) => {
   } catch {
     return String(value);
   }
+};
+
+const formatAddressLines = (address?: Address) => {
+  if (!address) {
+    return [];
+  }
+  const lines: string[] = [];
+  lines.push(address.line1);
+  if (address.line2) {
+    lines.push(address.line2);
+  }
+  lines.push(`${address.city}, ${address.state} ${address.postalCode}`);
+  lines.push(address.country);
+  return lines;
 };
 
 const getMetadataEntries = (metadata?: Record<string, unknown>) => {
@@ -686,6 +701,11 @@ export default function OrderDetailPage() {
                   <Typography variant="body2" color="text.secondary">
                     Payment: {order.paymentStatus ?? 'TBD'}
                   </Typography>
+                  {showCustomerPayNow && (
+                    <Alert severity="info" sx={{ mt: 1 }}>
+                      Payment is required to move into production. Use “Pay now” to continue.
+                    </Alert>
+                  )}
                   <Typography variant="body2" color="text.secondary">
                     Total: {order.total ? `$${order.total.toFixed(2)}` : 'TBD'}
                   </Typography>
@@ -715,6 +735,30 @@ export default function OrderDetailPage() {
                     >
                       View tracking
                     </Button>
+                  )}
+                  {order.shippingAddress && (
+                    <Box sx={{ mt: 1 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Shipping address:
+                      </Typography>
+                      {formatAddressLines(order.shippingAddress).map((line) => (
+                        <Typography key={line} variant="body2" color="text.secondary">
+                          {line}
+                        </Typography>
+                      ))}
+                    </Box>
+                  )}
+                  {order.billingAddress && (
+                    <Box sx={{ mt: 1 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Billing address:
+                      </Typography>
+                      {formatAddressLines(order.billingAddress).map((line) => (
+                        <Typography key={line} variant="body2" color="text.secondary">
+                          {line}
+                        </Typography>
+                      ))}
+                    </Box>
                   )}
                   {showAdminControls && (
                     <Stack spacing={1} sx={{ mt: 2 }}>
