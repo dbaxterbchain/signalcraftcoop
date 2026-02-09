@@ -1,7 +1,18 @@
-import { Alert, Box, Button, Chip, Container, Stack, Typography } from '@mui/material';
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardActionArea,
+  CardContent,
+  Chip,
+  Container,
+  Stack,
+  Typography,
+} from '@mui/material';
 import Grid from '@mui/material/Grid';
 import { useEffect, useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import AddToCartDialog from '../components/AddToCartDialog';
 import { getProducts } from '../api/client';
 import type { Product } from '../api/types';
@@ -38,6 +49,7 @@ export default function ProductsPage() {
   const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const navigate = useNavigate();
 
   const getMainImage = (product: Product) => {
     const images = product.images ?? [];
@@ -83,11 +95,11 @@ export default function ProductsPage() {
           {products.map((product) => {
             const mainImage = getMainImage(product);
             const isFallback = product.id.startsWith('prod_fallback_');
+            const detailsLink = isFallback ? '/contact' : `/products/${product.id}`;
             return (
               <Grid size={{ xs: 12, md: 6 }} key={product.id}>
-                <Box
+                <Card
                   sx={{
-                    p: 3,
                     borderRadius: 3,
                     border: '1px solid #C5D6E5',
                     backgroundColor: '#FFFFFF',
@@ -95,62 +107,79 @@ export default function ProductsPage() {
                     height: '100%',
                   }}
                 >
-                  <Stack spacing={2}>
-                    <Box
+                <CardActionArea
+                  onClick={() => navigate(detailsLink)}
+                  sx={{ height: '100%', alignItems: 'stretch' }}
+                >
+                    <CardContent
                       sx={{
-                        width: '100%',
-                        height: 200,
-                        borderRadius: 2,
-                        border: '1px solid #E0E7EF',
-                        backgroundColor: '#F4F8FB',
+                        p: 3,
+                        height: '100%',
                         display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        overflow: 'hidden',
+                        flexDirection: 'column',
+                        gap: 2,
                       }}
                     >
-                      {mainImage ? (
-                        <Box
-                          component="img"
-                          src={mainImage.url}
-                          alt={mainImage.altText ?? product.title}
-                          sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        />
-                      ) : (
-                        <Typography variant="body2" color="text.secondary">
-                          Product image coming soon.
-                        </Typography>
-                      )}
-                    </Box>
-                    <Typography variant="h4">{product.title}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {product.description}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      SKU: {product.sku}
-                    </Typography>
-                    <Stack direction="row" spacing={2}>
-                      <Button
-                        variant="outlined"
-                        component={RouterLink}
-                        to={isFallback ? '/contact' : `/products/${product.id}`}
+                      <Box
+                        sx={{
+                          width: '100%',
+                          height: 200,
+                          borderRadius: 2,
+                          border: '1px solid #E0E7EF',
+                          backgroundColor: '#F4F8FB',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          overflow: 'hidden',
+                        }}
                       >
-                        {isFallback ? 'Request details' : 'View details'}
-                      </Button>
-                      {!isFallback && (
+                        {mainImage ? (
+                          <Box
+                            component="img"
+                            src={mainImage.url}
+                            alt={mainImage.altText ?? product.title}
+                            sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        ) : (
+                          <Typography variant="body2" color="text.secondary">
+                            Product image coming soon.
+                          </Typography>
+                        )}
+                      </Box>
+                      <Typography variant="h4">{product.title}</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {product.description}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        SKU: {product.sku}
+                      </Typography>
+                      <Stack direction="row" spacing={2} sx={{ mt: 'auto' }}>
                         <Button
-                          variant="contained"
-                          onClick={() => {
-                            setSelectedProduct(product);
-                            setDialogOpen(true);
+                          variant="outlined"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            navigate(detailsLink);
                           }}
                         >
-                          Add to cart
+                          {isFallback ? 'Request details' : 'View details'}
                         </Button>
-                      )}
-                    </Stack>
-                  </Stack>
-                </Box>
+                        {!isFallback && (
+                          <Button
+                            variant="contained"
+                            onClick={(event) => {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              setSelectedProduct(product);
+                              setDialogOpen(true);
+                            }}
+                          >
+                            Add to cart
+                          </Button>
+                        )}
+                      </Stack>
+                    </CardContent>
+                  </CardActionArea>
+                </Card>
               </Grid>
             );
           })}

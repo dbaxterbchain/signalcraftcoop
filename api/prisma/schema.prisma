@@ -82,6 +82,7 @@ model Order {
   status          OrderStatus
   paymentStatus   PaymentStatus @default(unpaid)
   paymentRequiredAt DateTime?
+  requiresDesignReview Boolean  @default(false)
   paidAt          DateTime?
   paymentProvider String?
   paymentReference String?
@@ -131,6 +132,7 @@ model Product {
   category   String?
   allowsNfc  Boolean   @default(false)
   allowsLogoUpload Boolean @default(false)
+  allowsDesignReview Boolean @default(false)
   active     Boolean   @default(true)
   images     ProductImage[]
   items      OrderItem[]

@@ -15,8 +15,8 @@ import {
 import Grid from '@mui/material/Grid';
 import { useMemo, useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { createOrder } from '../api/client';
-import type { Address, CreateOrderPayload } from '../api/types';
+import { createOrder, updatePaymentStatus } from '../api/client';
+import type { Address, CreateOrderPayload, PaymentStatus } from '../api/types';
 import { useCart } from '../cart/CartContext';
 
 const blankAddress: Address = {
@@ -29,24 +29,72 @@ const blankAddress: Address = {
 };
 
 export default function CartPage() {
-  const { items, removeItem, updateQuantity, clearCart, total } = useCart();
+  const { items, removeItem, updateItem, updateQuantity, clearCart, total } = useCart();
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [shipping, setShipping] = useState<Address>(blankAddress);
   const [billingSame, setBillingSame] = useState(true);
   const [billing, setBilling] = useState<Address>(blankAddress);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editItemId, setEditItemId] = useState<string | null>(null);
+  const [editNfcUrl, setEditNfcUrl] = useState('');
+  const [editError, setEditError] = useState<string | null>(null);
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [paymentOrderId, setPaymentOrderId] = useState<string | null>(null);
+  const [paymentOrderLabel, setPaymentOrderLabel] = useState<string | null>(null);
+  const [paymentUpdating, setPaymentUpdating] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const allowMockPayments = import.meta.env.VITE_ALLOW_MOCK_PAYMENTS === 'true';
 
   const itemCount = useMemo(
     () => items.reduce((sum, item) => sum + item.quantity, 0),
     [items],
   );
 
+  const isValidUrl = (value: string) => {
+    if (!value.trim()) {
+      return true;
+    }
+    try {
+      const parsed = new URL(value.trim());
+      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  };
+
+  const handleOpenEdit = (id: string, nfcUrl?: string) => {
+    setEditItemId(id);
+    setEditNfcUrl(nfcUrl ?? '');
+    setEditError(null);
+    setEditOpen(true);
+  };
+
+  const handleSaveEdit = () => {
+    if (!editItemId) {
+      return;
+    }
+    const trimmed = editNfcUrl.trim();
+    if (!isValidUrl(trimmed)) {
+      setEditError('Enter a valid URL (must include http or https).');
+      return;
+    }
+    updateItem(editItemId, { nfcUrl: trimmed || undefined });
+    setEditOpen(false);
+  };
+
   const handleCheckout = async () => {
     setSubmitting(true);
     setError(null);
     try {
+      const invalidItem = items.find((item) => item.nfcUrl && !isValidUrl(item.nfcUrl));
+      if (invalidItem) {
+        setError('One or more NFC links are invalid. Please edit the item and try again.');
+        setSubmitting(false);
+        return;
+      }
       const payload: CreateOrderPayload = {
         type: 'store',
         items: items.map((item) => ({
@@ -55,7 +103,7 @@ export default function CartPage() {
           sku: item.sku,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
-          nfcConfig: item.nfcUrl ? { url: item.nfcUrl } : undefined,
+          nfcConfig: item.nfcUrl ? { url: item.nfcUrl.trim() } : undefined,
           metadata: {
             logoUrl: item.logoUrl,
             logoFileName: item.logoFileName,
@@ -67,6 +115,12 @@ export default function CartPage() {
       const order = await createOrder(payload);
       clearCart();
       setCheckoutOpen(false);
+      if (allowMockPayments) {
+        setPaymentOrderId(order.id);
+        setPaymentOrderLabel(order.orderNumber ?? order.id);
+        setPaymentDialogOpen(true);
+        return;
+      }
       navigate(`/orders/${order.id}`);
     } catch (err) {
       const statusCode = (err as Error & { status?: number }).status;
@@ -77,6 +131,31 @@ export default function CartPage() {
       );
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const finalizePaymentFlow = (orderId?: string | null) => {
+    const destination = orderId ? `/orders/${orderId}` : '/orders';
+    setPaymentDialogOpen(false);
+    setPaymentOrderId(null);
+    setPaymentOrderLabel(null);
+    setPaymentError(null);
+    navigate(destination);
+  };
+
+  const handlePaymentUpdate = async (status: PaymentStatus) => {
+    if (!paymentOrderId) {
+      return;
+    }
+    setPaymentUpdating(true);
+    setPaymentError(null);
+    try {
+      await updatePaymentStatus(paymentOrderId, { status });
+      finalizePaymentFlow(paymentOrderId);
+    } catch {
+      setPaymentError('Unable to update payment status.');
+    } finally {
+      setPaymentUpdating(false);
     }
   };
 
@@ -153,6 +232,12 @@ export default function CartPage() {
                           onClick={() => removeItem(item.id)}
                         >
                           Remove
+                        </Button>
+                        <Button
+                          variant="text"
+                          onClick={() => handleOpenEdit(item.id, item.nfcUrl)}
+                        >
+                          Edit details
                         </Button>
                       </Stack>
                       {item.nfcUrl && (
@@ -313,6 +398,75 @@ export default function CartPage() {
           </Button>
           <Button variant="contained" onClick={handleCheckout} disabled={submitting}>
             {submitting ? 'Placing order...' : 'Place order'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={editOpen} onClose={() => setEditOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Edit item details</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              label="NFC link"
+              placeholder="https://..."
+              value={editNfcUrl}
+              onChange={(event) => {
+                setEditNfcUrl(event.target.value);
+                if (editError) {
+                  setEditError(null);
+                }
+              }}
+              error={Boolean(editError)}
+              helperText={editError ?? 'Leave blank if NFC is not needed.'}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setEditOpen(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleSaveEdit}>
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={paymentDialogOpen}
+        onClose={() => finalizePaymentFlow(paymentOrderId)}
+      >
+        <DialogTitle>Simulate payment</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary">
+            This is a mock payment flow for standard products. Use it to confirm
+            the checkout experience before Stripe is live.
+          </Typography>
+          {paymentOrderLabel && (
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              Order: {paymentOrderLabel}
+            </Typography>
+          )}
+          {paymentError && (
+            <Alert severity="info" sx={{ mt: 2 }}>
+              {paymentError}
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => finalizePaymentFlow(paymentOrderId)}>
+            Cancel
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => handlePaymentUpdate('unpaid')}
+            disabled={paymentUpdating}
+          >
+            Simulate failure
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => handlePaymentUpdate('paid')}
+            disabled={paymentUpdating}
+          >
+            Simulate payment
           </Button>
         </DialogActions>
       </Dialog>

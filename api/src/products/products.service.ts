@@ -44,6 +44,7 @@ const mapProduct = (product: ProductWithImages) => ({
   category: product.category ?? undefined,
   allowsNfc: product.allowsNfc,
   allowsLogoUpload: product.allowsLogoUpload,
+  allowsDesignReview: Boolean(product.allowsDesignReview),
   active: product.active,
   images: product.images.map((image) => ({
     id: image.id,
@@ -98,6 +99,7 @@ export class ProductsService {
         category: payload.category,
         allowsNfc: payload.allowsNfc ?? false,
         allowsLogoUpload: payload.allowsLogoUpload ?? false,
+        allowsDesignReview: payload.allowsDesignReview ?? false,
         active: true,
         images: images ? { create: images } : undefined,
       },
@@ -124,6 +126,7 @@ export class ProductsService {
         category: payload.category,
         allowsNfc: payload.allowsNfc,
         allowsLogoUpload: payload.allowsLogoUpload,
+        allowsDesignReview: payload.allowsDesignReview,
         images:
           payload.images !== undefined
             ? {

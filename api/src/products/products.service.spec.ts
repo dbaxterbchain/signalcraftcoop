@@ -17,6 +17,7 @@ describe('ProductsService', () => {
     category: string | null;
     allowsNfc: boolean;
     allowsLogoUpload: boolean;
+    allowsDesignReview: boolean;
     active: boolean;
     images: {
       id: string;
@@ -58,6 +59,7 @@ describe('ProductsService', () => {
     category: 'merch',
     allowsNfc: true,
     allowsLogoUpload: false,
+    allowsDesignReview: false,
     active: true,
     images: [],
     createdAt,
@@ -109,6 +111,7 @@ describe('ProductsService', () => {
         category: product.category,
         allowsNfc: product.allowsNfc,
         allowsLogoUpload: product.allowsLogoUpload,
+        allowsDesignReview: product.allowsDesignReview,
         active: product.active,
         images: [],
         createdAt: product.createdAt.toISOString(),
@@ -166,6 +169,7 @@ describe('ProductsService', () => {
       category: product.category ?? undefined,
       allowsNfc: product.allowsNfc,
       allowsLogoUpload: product.allowsLogoUpload,
+      allowsDesignReview: product.allowsDesignReview,
     };
 
     const result = await service.createProduct(payload);
@@ -179,6 +183,7 @@ describe('ProductsService', () => {
         category: product.category,
         allowsNfc: product.allowsNfc,
         allowsLogoUpload: product.allowsLogoUpload,
+        allowsDesignReview: product.allowsDesignReview,
         active: true,
         images: undefined,
       },
@@ -201,6 +206,7 @@ describe('ProductsService', () => {
       category: product.category ?? undefined,
       allowsNfc: product.allowsNfc,
       allowsLogoUpload: product.allowsLogoUpload,
+      allowsDesignReview: product.allowsDesignReview,
     };
 
     const result = await service.updateProduct(product.id, payload);
@@ -223,6 +229,7 @@ describe('ProductsService', () => {
       category: 'cat',
       allowsNfc: false,
       allowsLogoUpload: false,
+      allowsDesignReview: false,
     };
 
     await expect(

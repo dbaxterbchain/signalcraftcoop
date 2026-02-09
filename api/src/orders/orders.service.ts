@@ -131,6 +131,7 @@ const formatOrder = (order: OrderWithOptionalEvents) => ({
   paymentRequiredAt: order.paymentRequiredAt
     ? order.paymentRequiredAt.toISOString()
     : undefined,
+  requiresDesignReview: Boolean(order.requiresDesignReview),
   paidAt: order.paidAt ? order.paidAt.toISOString() : undefined,
   paymentProvider: order.paymentProvider ?? undefined,
   paymentReference: order.paymentReference ?? undefined,
@@ -259,6 +260,21 @@ export class OrdersService {
     const count = await this.prisma.order.count();
     const orderNumber = `SC-${1000 + count + 1}`;
     const userId = await this.resolveUserId(user);
+    let requiresDesignReview = payload.type === OrderType.Custom;
+    if (!requiresDesignReview && payload.type === OrderType.Store) {
+      const productIds = payload.items
+        .map((item) => item.productId)
+        .filter((id): id is string => Boolean(id));
+      if (productIds.length > 0) {
+        const products = await this.prisma.product.findMany({
+          where: { id: { in: productIds } },
+          select: { allowsDesignReview: true },
+        });
+        requiresDesignReview = products.some(
+          (product) => product.allowsDesignReview,
+        );
+      }
+    }
 
     const order = await this.prisma.order.create({
       data: {
@@ -266,6 +282,9 @@ export class OrdersService {
         type: orderTypeToDb[payload.type],
         status: orderStatusToDb[OrderStatus.Submitted],
         paymentStatus: paymentStatusToDb[PaymentStatus.Unpaid],
+        paymentRequiredAt:
+          payload.type === OrderType.Store ? new Date() : undefined,
+        requiresDesignReview,
         subtotal,
         tax: 0,
         shipping: 0,

@@ -28,6 +28,7 @@ const blankProduct = {
   category: '',
   allowsNfc: false,
   allowsLogoUpload: false,
+  allowsDesignReview: false,
   images: [] as ProductImage[],
 };
 
@@ -204,6 +205,7 @@ export default function AdminProductsPage() {
         category: createForm.category,
         allowsNfc: createForm.allowsNfc,
         allowsLogoUpload: createForm.allowsLogoUpload,
+        allowsDesignReview: createForm.allowsDesignReview,
         images: normalizeImages(createForm.images).map((image, index) => ({
           ...image,
           sortOrder: index,
@@ -362,6 +364,20 @@ export default function AdminProductsPage() {
                   />
                 }
                 label="Allows logo upload"
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={Boolean(createForm.allowsDesignReview)}
+                    onChange={(event) =>
+                      setCreateForm((prev) => ({
+                        ...prev,
+                        allowsDesignReview: event.target.checked,
+                      }))
+                    }
+                  />
+                }
+                label="Requires design review"
               />
             </Grid>
             <Grid size={{ xs: 12 }}>
@@ -540,6 +556,23 @@ export default function AdminProductsPage() {
                         />
                       }
                       label="Allows logo upload"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={Boolean(
+                            draft.allowsDesignReview ?? product.allowsDesignReview,
+                          )}
+                          onChange={(event) =>
+                            updateDraft(
+                              product.id,
+                              'allowsDesignReview',
+                              event.target.checked,
+                            )
+                          }
+                        />
+                      }
+                      label="Requires design review"
                     />
                     <Stack spacing={2}>
                       <Button

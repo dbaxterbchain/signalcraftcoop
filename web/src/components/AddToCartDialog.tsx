@@ -51,6 +51,20 @@ export default function AddToCartDialog({ open, product, onClose }: AddToCartDia
     if (!product) {
       return;
     }
+    if (product.allowsNfc) {
+      const trimmed = nfcUrl.trim();
+      if (trimmed) {
+        try {
+          const parsed = new URL(trimmed);
+          if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+            throw new Error('invalid');
+          }
+        } catch {
+          setError('Enter a valid NFC URL (must include http or https).');
+          return;
+        }
+      }
+    }
     setSubmitting(true);
     setError(null);
     try {
@@ -117,7 +131,12 @@ export default function AddToCartDialog({ open, product, onClose }: AddToCartDia
               label="NFC link"
               placeholder="https://..."
               value={nfcUrl}
-              onChange={(event) => setNfcUrl(event.target.value)}
+              onChange={(event) => {
+                setNfcUrl(event.target.value);
+                if (error) {
+                  setError(null);
+                }
+              }}
             />
           )}
           {product?.allowsLogoUpload && (

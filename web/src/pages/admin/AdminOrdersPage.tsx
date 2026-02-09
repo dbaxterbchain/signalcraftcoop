@@ -2,6 +2,9 @@ import {
   Alert,
   Box,
   Button,
+  Card,
+  CardActionArea,
+  CardContent,
   Chip,
   Container,
   MenuItem,
@@ -11,7 +14,7 @@ import {
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import { useEffect, useMemo, useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { getAdminOrders } from '../../api/client';
 import type { Order } from '../../api/types';
 
@@ -48,6 +51,7 @@ export default function AdminOrdersPage() {
   const [typeFilter, setTypeFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [search, setSearch] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     let active = true;
@@ -191,48 +195,58 @@ export default function AdminOrdersPage() {
         <Grid container spacing={3}>
           {filteredOrders.map((order) => (
             <Grid size={{ xs: 12, md: 6 }} key={order.id}>
-              <Box
+              <Card
                 sx={{
-                  p: 3,
                   borderRadius: 3,
                   border: '1px solid #C5D6E5',
                   backgroundColor: '#FFFFFF',
                   boxShadow: '0 6px 24px rgba(10, 42, 67, 0.12)',
+                  height: '100%',
                 }}
               >
-                <Stack spacing={1}>
-                  <Typography variant="h4">
-                    {order.orderNumber ?? order.id}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Type: {order.type} - Status: {order.status}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Total: {order.total ? `$${order.total.toFixed(2)}` : 'TBD'}
-                  </Typography>
-                  {order.paymentStatus && (
-                    <Typography variant="body2" color="text.secondary">
-                      Payment: {order.paymentStatus}
+                <CardActionArea
+                  onClick={() => navigate(`/admin/orders/${order.id}`)}
+                  sx={{ height: '100%', alignItems: 'stretch' }}
+                >
+                  <CardContent
+                    sx={{
+                      p: 3,
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 1,
+                    }}
+                  >
+                    <Typography variant="h4">
+                      {order.orderNumber ?? order.id}
                     </Typography>
-                  )}
-                  <Button
-                    component={RouterLink}
-                    to={`/admin/orders/${order.id}`}
-                    variant="outlined"
-                    sx={{ alignSelf: 'flex-start' }}
-                  >
-                    Manage order
-                  </Button>
-                  <Button
-                    component={RouterLink}
-                    to={`/admin/orders/${order.id}?view=customer`}
-                    variant="text"
-                    sx={{ alignSelf: 'flex-start' }}
-                  >
-                    View as customer
-                  </Button>
-                </Stack>
-              </Box>
+                    <Typography variant="body2" color="text.secondary">
+                      Type: {order.type} - Status: {order.status}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Total: {order.total ? `$${order.total.toFixed(2)}` : 'TBD'}
+                    </Typography>
+                    {order.paymentStatus && (
+                      <Typography variant="body2" color="text.secondary">
+                        Payment: {order.paymentStatus}
+                      </Typography>
+                    )}
+                    <Box sx={{ mt: 'auto' }}>
+                      <Button
+                        variant="text"
+                        sx={{ alignSelf: 'flex-start' }}
+                        onClick={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          navigate(`/admin/orders/${order.id}?view=customer`);
+                        }}
+                      >
+                        View as customer
+                      </Button>
+                    </Box>
+                  </CardContent>
+                </CardActionArea>
+              </Card>
             </Grid>
           ))}
         </Grid>

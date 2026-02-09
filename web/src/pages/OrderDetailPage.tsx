@@ -17,7 +17,12 @@ import {
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import { useEffect, useMemo, useState } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import {
+  Link as RouterLink,
+  useLocation,
+  useParams,
+  useSearchParams,
+} from 'react-router-dom';
 import {
   createDesign,
   createDesignReview,
@@ -158,10 +163,13 @@ export default function OrderDetailPage() {
   const [eventSubmitting, setEventSubmitting] = useState(false);
   const [eventError, setEventError] = useState<string | null>(null);
   const { user } = useAuth();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const isAdmin = user?.groups?.includes('admin') ?? false;
-  const isImpersonating = isAdmin && searchParams.get('view') === 'customer';
-  const showAdminControls = isAdmin && !isImpersonating;
+  const isAdminRoute = location.pathname.startsWith('/admin');
+  const isAdminContext = isAdmin && isAdminRoute;
+  const isImpersonating = isAdminContext && searchParams.get('view') === 'customer';
+  const showAdminControls = isAdminContext && !isImpersonating;
   const allowMockPayments = import.meta.env.VITE_ALLOW_MOCK_PAYMENTS === 'true';
   const canMockPayments = showAdminControls || allowMockPayments;
   const paymentRequired = Boolean(order?.paymentRequiredAt);
@@ -175,6 +183,8 @@ export default function OrderDetailPage() {
   const showPaymentButton = showAdminControls
     ? canMockPayments
     : showCustomerPayNow;
+  const showDesignReview =
+    order?.type === 'custom' || Boolean(order?.requiresDesignReview);
 
   const orderLabel = useMemo(
     () => order?.orderNumber ?? order?.id ?? orderId ?? 'Order',
@@ -184,11 +194,24 @@ export default function OrderDetailPage() {
     if (!order?.events) {
       return [];
     }
-    if (isImpersonating) {
+    if (!showAdminControls) {
       return order.events.filter((event) => event.isCustomerVisible !== false);
     }
     return order.events;
-  }, [isImpersonating, order?.events]);
+  }, [order?.events, showAdminControls]);
+
+  const itemCount = useMemo(
+    () => order?.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0,
+    [order?.items],
+  );
+  const itemSubtotal = useMemo(
+    () =>
+      order?.items?.reduce(
+        (sum, item) => sum + item.quantity * item.unitPrice,
+        0,
+      ) ?? 0,
+    [order?.items],
+  );
 
   useEffect(() => {
     if (!orderId) {
@@ -473,8 +496,15 @@ export default function OrderDetailPage() {
               Type: {order.type} - Status: {order.status}
             </Typography>
           )}
-          {isAdmin && (
+          {isAdminContext && (
             <Stack direction="row" spacing={2} alignItems="center">
+              <Button
+                component={RouterLink}
+                to="/admin/orders"
+                variant="text"
+              >
+                Back to order management
+              </Button>
               {isImpersonating ? (
                 <Button
                   variant="outlined"
@@ -501,7 +531,8 @@ export default function OrderDetailPage() {
         </Stack>
 
         <Grid container spacing={4}>
-          <Grid size={{ xs: 12, md: 6 }}>
+          {showDesignReview && (
+            <Grid size={{ xs: 12, md: 6 }}>
             <Box
               sx={{
                 p: 3,
@@ -681,7 +712,8 @@ export default function OrderDetailPage() {
               )}
             </Box>
           </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
+          )}
+          <Grid size={{ xs: 12, md: showDesignReview ? 6 : 12 }}>
             <Box
               sx={{
                 p: 3,
@@ -703,8 +735,18 @@ export default function OrderDetailPage() {
                   </Typography>
                   {showCustomerPayNow && (
                     <Alert severity="info" sx={{ mt: 1 }}>
-                      Payment is required to move into production. Use “Pay now” to continue.
+                      Payment is required to move into production. Use "Pay now" to continue.
                     </Alert>
+                  )}
+                  {itemCount > 0 && (
+                    <Typography variant="body2" color="text.secondary">
+                      Items: {itemCount}
+                    </Typography>
+                  )}
+                  {itemSubtotal > 0 && (
+                    <Typography variant="body2" color="text.secondary">
+                      Subtotal: ${itemSubtotal.toFixed(2)}
+                    </Typography>
                   )}
                   <Typography variant="body2" color="text.secondary">
                     Total: {order.total ? `$${order.total.toFixed(2)}` : 'TBD'}
@@ -940,6 +982,9 @@ export default function OrderDetailPage() {
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
                         Unit price: ${item.unitPrice.toFixed(2)}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Line total: ${(item.unitPrice * item.quantity).toFixed(2)}
                       </Typography>
                       {item.nfcConfig?.url && (
                         <Typography variant="body2" color="text.secondary">

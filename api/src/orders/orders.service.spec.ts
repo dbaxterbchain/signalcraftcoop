@@ -21,6 +21,7 @@ describe('OrdersService', () => {
     status: DbOrderStatus;
     paymentStatus: DbPaymentStatus;
     paymentRequiredAt?: Date | null;
+    requiresDesignReview?: boolean | null;
     paidAt?: Date | null;
     paymentProvider?: string | null;
     paymentReference?: string | null;
@@ -83,6 +84,12 @@ describe('OrdersService', () => {
   type PrismaMock = {
     order: OrderDelegateMock;
     orderEvent: OrderEventDelegateMock;
+    product: {
+      findMany: jest.Mock<
+        Promise<{ allowsDesignReview: boolean }[]>,
+        [Prisma.ProductFindManyArgs]
+      >;
+    };
     user: {
       upsert: jest.Mock<Promise<{ id: string }>, [Prisma.UserUpsertArgs]>;
     };
@@ -94,6 +101,7 @@ describe('OrdersService', () => {
     type: DbOrderType.custom,
     status: DbOrderStatus.intake,
     paymentStatus: DbPaymentStatus.unpaid,
+    requiresDesignReview: false,
     subtotal: 100,
     tax: 0,
     shipping: 0,
@@ -140,6 +148,12 @@ describe('OrdersService', () => {
         create: jest.fn<
           Promise<{ id: string }>,
           [Prisma.OrderEventCreateArgs]
+        >(),
+      },
+      product: {
+        findMany: jest.fn<
+          Promise<{ allowsDesignReview: boolean }[]>,
+          [Prisma.ProductFindManyArgs]
         >(),
       },
       user: {
@@ -229,6 +243,7 @@ describe('OrdersService', () => {
       type: DbOrderType.custom,
       status: DbOrderStatus.intake,
       paymentStatus: DbPaymentStatus.unpaid,
+      requiresDesignReview: true,
       subtotal: 50,
       total: 50,
     });

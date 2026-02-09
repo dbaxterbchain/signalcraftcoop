@@ -24,6 +24,7 @@ type CartContextValue = {
   items: CartItem[];
   addItem: (item: CartItem) => void;
   removeItem: (id: string) => void;
+  updateItem: (id: string, updates: Partial<CartItem>) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
   total: number;
@@ -71,6 +72,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems((prev) => prev.filter((item) => item.id !== id));
   }, []);
 
+  const updateItem = useCallback((id: string, updates: Partial<CartItem>) => {
+    setItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, ...updates } : item)),
+    );
+  }, []);
+
   const updateQuantity = useCallback((id: string, quantity: number) => {
     setItems((prev) =>
       prev.map((item) =>
@@ -89,8 +96,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo(
-    () => ({ items, addItem, removeItem, updateQuantity, clearCart, total }),
-    [items, addItem, removeItem, updateQuantity, clearCart, total],
+    () => ({
+      items,
+      addItem,
+      removeItem,
+      updateItem,
+      updateQuantity,
+      clearCart,
+      total,
+    }),
+    [items, addItem, removeItem, updateItem, updateQuantity, clearCart, total],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

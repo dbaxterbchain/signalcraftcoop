@@ -1,6 +1,7 @@
 import {
   AppBar,
   Box,
+  Badge,
   Button,
   CircularProgress,
   Container,
@@ -14,6 +15,7 @@ import {
 } from '@mui/material';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import MenuIcon from '@mui/icons-material/Menu';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { loginWithHostedUI, logout } from '../auth/auth';
@@ -67,9 +69,6 @@ export default function NavBar() {
             <Button component={RouterLink} to="/products" variant="outlined">
               Products
             </Button>
-            <Button component={RouterLink} to="/cart" variant="outlined">
-              Cart{cartCount > 0 ? ` (${cartCount})` : ''}
-            </Button>
             <Button component={RouterLink} to="/custom-order" variant="contained">
               Start a custom order
             </Button>
@@ -83,6 +82,21 @@ export default function NavBar() {
               </Button>
             ) : isAuthenticated ? (
               <>
+                <IconButton
+                  component={RouterLink}
+                  to="/cart"
+                  aria-label="Cart"
+                  sx={{ ml: 1 }}
+                >
+                  <Badge
+                    badgeContent={cartCount}
+                    color="primary"
+                    overlap="circular"
+                    invisible={cartCount === 0}
+                  >
+                    <ShoppingCartIcon />
+                  </Badge>
+                </IconButton>
                 <IconButton
                   onClick={(event) => setAnchorEl(event.currentTarget)}
                   sx={{ ml: 1 }}
@@ -115,9 +129,26 @@ export default function NavBar() {
                 </Menu>
               </>
             ) : (
-              <Button variant="text" onClick={() => loginWithHostedUI(window.location.pathname)}>
-                Log in
-              </Button>
+              <>
+                <IconButton
+                  component={RouterLink}
+                  to="/cart"
+                  aria-label="Cart"
+                  sx={{ ml: 1 }}
+                >
+                  <Badge
+                    badgeContent={cartCount}
+                    color="primary"
+                    overlap="circular"
+                    invisible={cartCount === 0}
+                  >
+                    <ShoppingCartIcon />
+                  </Badge>
+                </IconButton>
+                <Button variant="text" onClick={() => loginWithHostedUI(window.location.pathname)}>
+                  Log in
+                </Button>
+              </>
             )}
           </Stack>
           <IconButton

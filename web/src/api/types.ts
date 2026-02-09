@@ -40,6 +40,7 @@ export type Product = {
   basePrice?: number;
   allowsNfc?: boolean;
   allowsLogoUpload?: boolean;
+  allowsDesignReview?: boolean;
   active?: boolean;
   images?: ProductImage[];
 };
@@ -51,6 +52,7 @@ export type Order = {
   status: OrderStatus;
   paymentStatus?: PaymentStatus;
   paymentRequiredAt?: string;
+  requiresDesignReview?: boolean;
   paidAt?: string;
   paymentProvider?: string;
   paymentReference?: string;

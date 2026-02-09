@@ -64,6 +64,11 @@ export class CreateProductDto {
   allowsLogoUpload?: boolean;
 
   @IsOptional()
+  @IsBoolean()
+  @Type(() => Boolean)
+  allowsDesignReview?: boolean;
+
+  @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => ProductImageDto)
   images?: ProductImageDto[];
