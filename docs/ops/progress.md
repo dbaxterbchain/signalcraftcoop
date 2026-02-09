@@ -1,6 +1,6 @@
 # Project Progress
 
-Last updated: 2026-02-07
+Last updated: 2026-02-09
 
 ## Current status
 - Core web + API scaffolding in place with Cognito Hosted UI auth.
@@ -33,6 +33,7 @@ Last updated: 2026-02-07
 - Admin-only design upload UI added for order detail reviews (file picker + S3 presign).
 - Admin order status updates wired in Order Detail.
 - S3 uploads bucket + presigned URL API in Lambda for design proof uploads.
+- Cognito authorizer group parsing fixed for HTTP API claims (string -> array).
 
 ## Completed
 - React + MUI web app with landing, products, custom order, orders, and order detail pages.

@@ -32,12 +32,6 @@ export class CognitoJwtGuard extends AuthGuard('cognito-jwt') {
     const claims = authorizer?.jwt?.claims ?? authorizer?.claims;
 
     if (claims && typeof claims === 'object') {
-      if (process.env.DEBUG_AUTH_CLAIMS === 'true') {
-        const groupValue = claims['cognito:groups'];
-        console.log('[auth] authorizer claims keys:', Object.keys(claims));
-        console.log('[auth] cognito:groups type:', typeof groupValue);
-        console.log('[auth] cognito:groups value:', groupValue);
-      }
       request.user = buildUserFromClaims(claims);
       return true;
     }

@@ -99,7 +99,6 @@ export class ApiLambdaStack extends cdk.Stack {
         COGNITO_DOMAIN: props.cognito.domain,
         COGNITO_LOGOUT_URI: `https://${props.config.webDomain}/`,
         WEB_ORIGIN: webOrigin.valueAsString,
-        DEBUG_AUTH_CLAIMS: props.config.name === 'staging' ? 'true' : 'false',
         ALLOW_MOCK_PAYMENTS: props.config.allowMockPayments ? 'true' : 'false',
         DB_SSLMODE: 'verify-full',
         DB_SSL_REJECT_UNAUTHORIZED: 'true',
