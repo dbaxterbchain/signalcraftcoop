@@ -36,6 +36,7 @@ export class CognitoJwtGuard extends AuthGuard('cognito-jwt') {
         const groupValue = claims['cognito:groups'];
         console.log('[auth] authorizer claims keys:', Object.keys(claims));
         console.log('[auth] cognito:groups type:', typeof groupValue);
+        console.log('[auth] cognito:groups value:', groupValue);
       }
       request.user = buildUserFromClaims(claims);
       return true;
@@ -70,7 +71,8 @@ function parseGroups(value: unknown): string[] | undefined {
     if (!trimmed) {
       return undefined;
     }
-    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+    const isBracketed = trimmed.startsWith('[') && trimmed.endsWith(']');
+    if (isBracketed) {
       try {
         const parsed = JSON.parse(trimmed);
         if (Array.isArray(parsed)) {
@@ -79,10 +81,14 @@ function parseGroups(value: unknown): string[] | undefined {
           );
         }
       } catch {
-        return undefined;
+        // Fall through to best-effort parsing.
       }
     }
-    return trimmed.split(',').map((entry) => entry.trim()).filter(Boolean);
+    const raw = isBracketed ? trimmed.slice(1, -1) : trimmed;
+    return raw
+      .split(',')
+      .map((entry) => entry.trim().replace(/^['"]|['"]$/g, ''))
+      .filter(Boolean);
   }
   return undefined;
 }
