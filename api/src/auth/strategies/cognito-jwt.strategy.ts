@@ -62,15 +62,17 @@ export class CognitoJwtStrategy extends PassportStrategy(
       throw new UnauthorizedException('Invalid token audience');
     }
 
+    const username =
+      typeof payload['cognito:username'] === 'string'
+        ? payload['cognito:username']
+        : typeof payload.username === 'string'
+          ? payload.username
+          : undefined;
+
     return {
       sub: typeof payload.sub === 'string' ? payload.sub : 'unknown',
       email: typeof payload.email === 'string' ? payload.email : undefined,
-      username:
-        typeof payload['cognito:username'] === 'string'
-          ? payload['cognito:username']
-          : typeof payload.username === 'string'
-            ? payload.username
-          : undefined,
+      username,
       groups: parseGroups(payload['cognito:groups']),
       raw: payload,
     };
@@ -89,7 +91,7 @@ function parseGroups(value: unknown): string[] | undefined {
     const isBracketed = trimmed.startsWith('[') && trimmed.endsWith(']');
     if (isBracketed) {
       try {
-        const parsed = JSON.parse(trimmed);
+        const parsed: unknown = JSON.parse(trimmed);
         if (Array.isArray(parsed)) {
           return parsed.filter(
             (item): item is string => typeof item === 'string',
