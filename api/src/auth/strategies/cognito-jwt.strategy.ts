@@ -100,8 +100,9 @@ function parseGroups(value: unknown): string[] | undefined {
       }
     }
     const raw = isBracketed ? trimmed.slice(1, -1) : trimmed;
+    const delimiter = raw.includes(',') ? ',' : ' ';
     return raw
-      .split(',')
+      .split(delimiter)
       .map((entry) => entry.trim().replace(/^['"]|['"]$/g, ''))
       .filter(Boolean);
   }
